@@ -1,0 +1,130 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+*.log
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+backend/.env
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+fantasy_football.db
+
+# Node.js / React
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+
+# React build
+frontend/build/
+frontend/dist/
+
+# Test outputs
+test_reports/
+coverage/
+*.coverage
+.coverage.*
+junit.xml
+test-results/
+
+# Firecrawl outputs
+firecrawl_output.md
+firecrawl_output.html
+public_*.md
+scraped_transactions.json
+espn_transactions.json
+page_content.html
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+.cache/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Python Jupyter Notebooks
+.ipynb_checkpoints
+*.ipynb
+
+# Playwright
+playwright-report/
+test-results/
+
+# AWS
+.aws/
+*.pem
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Secrets
+*.key
+*.crt
+*.pem
+credentials.json
+firebase-config.json

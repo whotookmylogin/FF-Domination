@@ -1,0 +1,61 @@
+.advanced-analytics-card {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 15px 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.advanced-analytics-card h3 {
+  margin-top: 0;
+  color: #212529;
+  border-bottom: 2px solid #4CAF50;
+  padding-bottom: 10px;
+}
+
+.analytics-section {
+  margin: 15px 0;
+}
+
+.analytics-section h4 {
+  color: #495057;
+  margin-bottom: 10px;
+}
+
+.analytics-section h5 {
+  color: #6c757d;
+  margin: 10px 0 5px 0;
+}
+
+.analytics-section ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.analytics-section li {
+  padding: 5px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.suggestions li {
+  padding: 8px;
+  margin: 5px 0;
+  border-radius: 4px;
+}
+
+.priority-high {
+  background-color: #fff3cd;
+  border-left: 4px solid #ffc107;
+}
+
+.priority-medium {
+  background-color: #d1ecf1;
+  border-left: 4px solid #0dcaf0;
+}
+
+.advanced-analytics-card.error {
+  background-color: #f8d7da;
+  border-color: #f5c2c7;
+  color: #842029;
+}

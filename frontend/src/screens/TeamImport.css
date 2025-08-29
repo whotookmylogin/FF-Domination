@@ -1,0 +1,381 @@
+/* ===============================================
+   TEAM IMPORT - SLEEPER-INSPIRED DESIGN
+   Multi-platform team import interface
+   =============================================== */
+
+@import '../styles/DesignSystem.css';
+
+/* ==================== PAGE LAYOUT ==================== */
+.team-import-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.import-content {
+  margin-top: var(--space-6);
+}
+
+.back-button {
+  margin-bottom: var(--space-4);
+}
+
+.import-header {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.import-header h2 {
+  margin-bottom: var(--space-2);
+  color: var(--text-primary);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.import-header p {
+  color: var(--text-secondary);
+  font-size: var(--font-size-lg);
+  margin: 0;
+}
+
+/* ==================== PLATFORM SELECTION ==================== */
+.platforms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: var(--space-6);
+  margin-top: var(--space-8);
+}
+
+.platform-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-xl);
+  padding: var(--space-8);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.platform-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-brand);
+}
+
+.platform-card:hover .platform-icon {
+  transform: scale(1.1);
+}
+
+.platform-icon {
+  font-size: 4rem;
+  margin-bottom: var(--space-4);
+  transition: transform var(--transition-normal);
+}
+
+.platform-card h3 {
+  margin: 0 0 var(--space-2) 0;
+  color: var(--text-primary);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.platform-card p {
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-6) 0;
+  font-size: var(--font-size-base);
+}
+
+.platform-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-6) 0;
+  text-align: left;
+}
+
+.platform-features li {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.platform-card .btn {
+  width: 100%;
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ==================== SEARCH FORMS ==================== */
+.search-form {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.espn-form,
+.sleeper-form {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-8);
+}
+
+.form-group {
+  margin-bottom: var(--space-6);
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group small {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  margin-top: var(--space-1);
+  display: block;
+}
+
+.espn-form .btn,
+.sleeper-form .btn {
+  width: 100%;
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin-top: var(--space-4);
+}
+
+/* ==================== LEAGUE SELECTION ==================== */
+.leagues-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-4);
+}
+
+.league-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-6);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.league-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-brand);
+}
+
+.league-info {
+  flex: 1;
+}
+
+.league-info h3 {
+  margin: 0 0 var(--space-2) 0;
+  color: var(--text-primary);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.league-details {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.league-details span {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.league-teams {
+  color: var(--primary-brand) !important;
+}
+
+.league-season {
+  color: var(--accent-gold) !important;
+}
+
+.league-status {
+  color: var(--success) !important;
+  text-transform: capitalize;
+}
+
+/* ==================== CONFIRMATION ==================== */
+.import-confirmation {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.team-preview {
+  display: flex;
+  justify-content: center;
+}
+
+.team-card-large {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-xl);
+  padding: var(--space-8);
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+}
+
+.team-platform {
+  margin-bottom: var(--space-4);
+}
+
+.platform-badge {
+  background: linear-gradient(135deg, var(--primary-brand), var(--primary-brand-dark));
+  color: white;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.team-card-large h3 {
+  margin: 0 0 var(--space-6) 0;
+  color: var(--text-primary);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.team-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-label {
+  display: block;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--space-1);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  display: block;
+  color: var(--text-primary);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.import-actions .btn {
+  width: 100%;
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+/* ==================== ERROR MESSAGES ==================== */
+.error-message {
+  background: rgba(245, 101, 101, 0.1);
+  border: 1px solid var(--error);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--error);
+  font-weight: var(--font-weight-medium);
+}
+
+.error-icon {
+  font-size: var(--font-size-lg);
+}
+
+/* ==================== LOADING STATES ==================== */
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+@media (max-width: 768px) {
+  .platforms-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  
+  .platform-card {
+    padding: var(--space-6);
+  }
+  
+  .platform-icon {
+    font-size: 3rem;
+  }
+  
+  .leagues-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .league-card {
+    flex-direction: column;
+    gap: var(--space-4);
+    text-align: center;
+  }
+  
+  .league-details {
+    justify-content: center;
+    gap: var(--space-3);
+  }
+  
+  .team-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+  }
+}
+
+@media (max-width: 480px) {
+  .team-import-page {
+    padding: 0 var(--space-3);
+  }
+  
+  .import-header h2 {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .platform-card {
+    padding: var(--space-4);
+  }
+  
+  .platform-icon {
+    font-size: 2.5rem;
+  }
+  
+  .espn-form,
+  .sleeper-form,
+  .team-card-large {
+    padding: var(--space-6);
+  }
+  
+  .team-stats {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+  
+  .league-details {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+}

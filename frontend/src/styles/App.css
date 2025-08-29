@@ -1,0 +1,400 @@
+/* ===============================================
+   FANTASY FOOTBALL APP - MAIN STYLES
+   Modern Sleeper-inspired design system
+   =============================================== */
+
+/* Import our unified design system */
+@import './DesignSystem.css';
+
+/* ==================== GLOBAL OVERRIDES ==================== */
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==================== APP LAYOUT ==================== */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+.app-layout {
+  display: flex;
+  flex: 1;
+}
+
+.app-content {
+  flex: 1;
+  background: var(--bg-primary);
+  padding: var(--space-6);
+  margin-left: 280px;
+  margin-top: 70px;
+  transition: all var(--transition-normal);
+  min-height: calc(100vh - 70px);
+}
+
+/* ==================== TYPOGRAPHY ENHANCEMENTS ==================== */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  margin-bottom: var(--space-4);
+  color: var(--text-primary);
+}
+
+h1 { 
+  font-size: var(--font-size-4xl); 
+  font-weight: var(--font-weight-bold);
+}
+h2 { 
+  font-size: var(--font-size-3xl); 
+  font-weight: var(--font-weight-bold);
+}
+h3 { 
+  font-size: var(--font-size-2xl); 
+  font-weight: var(--font-weight-semibold);
+}
+h4 { 
+  font-size: var(--font-size-xl); 
+  font-weight: var(--font-weight-semibold);
+}
+h5 { 
+  font-size: var(--font-size-lg); 
+  font-weight: var(--font-weight-medium);
+}
+h6 { 
+  font-size: var(--font-size-base); 
+  font-weight: var(--font-weight-medium);
+}
+
+p {
+  margin-bottom: var(--space-4);
+  color: var(--text-secondary);
+  line-height: var(--line-height-normal);
+}
+
+/* ==================== PAGE HEADERS ==================== */
+.page-header {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-xl);
+  padding: var(--space-8);
+  margin-bottom: var(--space-8);
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.page-header h1 {
+  margin-bottom: var(--space-2);
+  background: linear-gradient(45deg, var(--primary-brand), var(--accent-gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.page-header p {
+  font-size: var(--font-size-lg);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ==================== ENHANCED CARDS ==================== */
+.modern-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+  margin-bottom: var(--space-6);
+}
+
+.modern-card:hover {
+  border-color: var(--border-color-light);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.modern-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modern-card-title {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.modern-card-content {
+  color: var(--text-secondary);
+}
+
+/* ==================== ENHANCED GRID LAYOUTS ==================== */
+.sleeper-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+
+.players-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-4);
+}
+
+/* ==================== STATUS INDICATORS ==================== */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: var(--space-2);
+}
+
+.status-active { background: var(--success); }
+.status-inactive { background: var(--text-muted); }
+.status-warning { background: var(--warning); }
+.status-error { background: var(--error); }
+
+/* ==================== ENHANCED FORMS ==================== */
+.form-group {
+  margin-bottom: var(--space-4);
+}
+
+.form-label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.form-input {
+  width: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+  transition: all var(--transition-fast);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary-brand);
+  box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+}
+
+.form-select {
+  width: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: var(--primary-brand);
+  box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+}
+
+/* ==================== TABS SYSTEM ==================== */
+.tab-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+}
+
+.tab-nav {
+  display: flex;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tab-button {
+  flex: 1;
+  padding: var(--space-4) var(--space-6);
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border-bottom: 2px solid transparent;
+}
+
+.tab-button:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.tab-button.active {
+  background: var(--bg-card);
+  color: var(--primary-brand);
+  border-bottom-color: var(--primary-brand);
+}
+
+.tab-content {
+  padding: var(--space-6);
+}
+
+/* ==================== LOADING STATES ==================== */
+.page-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  text-align: center;
+}
+
+.page-loading .loading-spinner {
+  width: 48px;
+  height: 48px;
+  margin-bottom: var(--space-4);
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-4);
+}
+
+.skeleton-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-6);
+  height: 200px;
+}
+
+.skeleton-line {
+  height: 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius-sm);
+  margin-bottom: var(--space-3);
+}
+
+.skeleton-line.short {
+  width: 60%;
+}
+
+.skeleton-line.medium {
+  width: 80%;
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+@media (max-width: 1024px) {
+  .app-content {
+    margin-left: 0;
+    padding: var(--space-4);
+  }
+  
+  .sleeper-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+  }
+}
+
+@media (max-width: 768px) {
+  .app-content {
+    padding: var(--space-3);
+    margin-top: 60px;
+  }
+  
+  .page-header {
+    padding: var(--space-6);
+    margin-bottom: var(--space-6);
+  }
+  
+  .page-header h1 {
+    font-size: var(--font-size-3xl);
+  }
+  
+  .modern-card {
+    padding: var(--space-4);
+  }
+  
+  .sleeper-grid,
+  .dashboard-grid,
+  .players-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+  
+  .tab-nav {
+    flex-direction: column;
+  }
+  
+  .tab-button {
+    padding: var(--space-3) var(--space-4);
+  }
+}
+
+@media (max-width: 480px) {
+  .app-content {
+    padding: var(--space-2);
+  }
+  
+  .page-header {
+    padding: var(--space-4);
+  }
+  
+  .modern-card {
+    padding: var(--space-3);
+  }
+  
+  .modern-card-header {
+    flex-direction: column;
+    gap: var(--space-2);
+    text-align: center;
+  }
+}
+
+/* ==================== PRINT STYLES ==================== */
+@media print {
+  .app-content {
+    margin: 0;
+    padding: 1rem;
+  }
+  
+  .modern-card {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+  
+  .btn, button {
+    display: none;
+  }
+}

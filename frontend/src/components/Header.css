@@ -1,0 +1,450 @@
+.header {
+  background: linear-gradient(to right, #1a1c2d, #2d2e40);
+  color: #ffffff;
+  padding: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  height: 64px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  padding: 0 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.header-brand h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  background: linear-gradient(to right, #4f9fff, #41e778);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  white-space: nowrap;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+/* League dropdown styling */
+.league-dropdown {
+  position: relative;
+  min-width: 200px;
+}
+
+.league-selector-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 16px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.league-selector-btn:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.dropdown-icon {
+  margin-left: 8px;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.league-dropdown-content {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  background-color: #2d2e40;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  overflow: hidden;
+  display: none;
+}
+
+.league-dropdown:hover .league-dropdown-content {
+  display: block;
+}
+
+.league-option {
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.league-option:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.league-option.active {
+  background-color: rgba(79, 159, 255, 0.2);
+  border-left: 3px solid #4f9fff;
+}
+
+.league-platform {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-left: 6px;
+}
+
+/* Header actions styling */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-dropdown {
+  position: relative;
+}
+
+.header-icon-btn {
+  position: relative;
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 1rem;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.header-icon-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.notification-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #ff4757;
+  color: white;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #2d2e40;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.user-profile:hover,
+.user-profile.clickable:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-avatar.large {
+  width: 48px;
+  height: 48px;
+}
+
+.user-name {
+  font-weight: 500;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Dropdown Menus */
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  overflow: hidden;
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-header {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+}
+
+.dropdown-header h3 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.dropdown-content {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.dropdown-footer {
+  padding: var(--space-3);
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+}
+
+/* Notifications Menu */
+.notifications-menu {
+  width: 380px;
+}
+
+.mark-all-read {
+  background: none;
+  border: none;
+  color: var(--primary-brand);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  padding: 0;
+}
+
+.mark-all-read:hover {
+  text-decoration: underline;
+}
+
+.notification-item {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.notification-item:hover {
+  background: var(--bg-hover);
+}
+
+.notification-item.unread {
+  background: rgba(0, 212, 255, 0.05);
+  border-left: 3px solid var(--primary-brand);
+}
+
+.notification-type {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--primary-brand);
+  text-transform: uppercase;
+  margin-bottom: var(--space-1);
+}
+
+.notification-message {
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-1);
+}
+
+.notification-time {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.view-all-btn {
+  width: 100%;
+  padding: var(--space-2);
+  background: none;
+  border: none;
+  color: var(--primary-brand);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.view-all-btn:hover {
+  background: var(--bg-hover);
+}
+
+/* Settings Menu */
+.settings-menu {
+  width: 280px;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.setting-item span {
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.setting-item select,
+.setting-item input[type="checkbox"] {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-primary);
+  padding: var(--space-1) var(--space-2);
+}
+
+.setting-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* Profile Menu */
+.profile-menu {
+  width: 280px;
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.profile-info h3 {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.profile-info p {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.menu-item {
+  display: block;
+  padding: var(--space-3);
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  transition: background-color var(--transition-fast);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.menu-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.menu-item.logout {
+  color: var(--error);
+}
+
+.menu-item.logout:hover {
+  background: rgba(245, 101, 101, 0.1);
+}
+
+.menu-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: var(--space-2) 0;
+}
+
+@media (max-width: 768px) {
+  .header {
+    height: 56px;
+  }
+  
+  .header-content {
+    padding: 0 16px;
+  }
+  
+  .header-brand h1 {
+    font-size: 1rem;
+  }
+  
+  .header-controls {
+    gap: 12px;
+  }
+  
+  .league-dropdown {
+    min-width: 150px;
+  }
+  
+  .user-name {
+    display: none;
+  }
+  
+  .user-profile {
+    padding: 6px;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    left: 0;
+    padding: var(--spacing-sm);
+  }
+  
+  .header-center {
+    margin: 0 var(--spacing-md);
+  }
+  
+  .league-selector {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.9rem;
+  }
+  
+  .user-profile {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+}

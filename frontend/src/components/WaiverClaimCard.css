@@ -1,0 +1,88 @@
+.waiver-claim-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: white;
+}
+
+.player-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.player-header h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.injury-status {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}
+
+.player-details {
+  margin-bottom: 20px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-weight: 500;
+  color: #e0e0e0;
+}
+
+.detail-value {
+  font-weight: 600;
+}
+
+.waiver-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.claim-btn {
+  padding: 12px 24px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.claim-btn:hover:not(:disabled) {
+  background: #45a049;
+  transform: translateY(-1px);
+}
+
+.claim-btn:disabled {
+  background: #9E9E9E;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.faab-info {
+  font-weight: 600;
+  font-size: 1.1rem;
+}

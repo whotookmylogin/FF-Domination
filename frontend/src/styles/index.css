@@ -1,0 +1,37 @@
+/* Base styles for the application */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .app-content {
+    margin-left: 0;
+    padding: var(--spacing-md);
+  }
+  
+  .sidebar {
+    position: fixed;
+    left: -250px;
+    transition: var(--transition-normal);
+    z-index: 1000;
+  }
+  
+  .sidebar.open {
+    left: 0;
+  }
+  
+  .header {
+    margin-left: 0;
+  }
+}
