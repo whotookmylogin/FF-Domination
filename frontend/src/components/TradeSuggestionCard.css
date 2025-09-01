@@ -1,39 +1,67 @@
 .trade-suggestion-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: white;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--padding-lg);
+  margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-normal);
+}
+
+.trade-suggestion-card:hover {
+  border-color: var(--border-color-light);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
 }
 
 .trade-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .trade-header h3 {
   margin: 0;
-  font-size: 1.4rem;
-  font-weight: 600;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
 }
 
 .risk-indicator {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
-  font-size: 0.9rem;
+  font-size: var(--font-size-sm);
   letter-spacing: 0.5px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--border-radius-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.risk-indicator.low {
+  background: rgba(72, 187, 120, 0.1);
+  color: var(--success);
+}
+
+.risk-indicator.medium {
+  background: rgba(237, 137, 54, 0.1);
+  color: var(--warning);
+}
+
+.risk-indicator.high {
+  background: rgba(245, 101, 101, 0.1);
+  color: var(--error);
 }
 
 .trade-players {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: var(--space-6);
+  gap: var(--space-4);
 }
 
 .player-section {
@@ -42,102 +70,153 @@
 }
 
 .player-section h4 {
-  margin: 0 0 15px 0;
-  font-size: 1.1rem;
-  color: #e0e0e0;
+  margin: 0 0 var(--space-4) 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .player-info {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 15px;
-  transition: transform 0.2s ease;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: var(--padding-md);
+  transition: all var(--transition-fast);
 }
 
 .player-info:hover {
   transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--bg-hover);
+  border-color: var(--border-color-light);
 }
 
 .player-name {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 5px;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-2);
+  color: var(--text-primary);
 }
 
 .player-details {
-  font-size: 0.9rem;
-  color: #bdbdbd;
-  margin-bottom: 8px;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
 }
 
 .player-projection {
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--primary-brand);
 }
 
 .trade-arrow {
   font-size: 2rem;
-  margin: 0 20px;
-  color: #ffeb3b;
+  color: var(--primary-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .value-improvement {
   text-align: center;
-  margin-bottom: 20px;
-  font-size: 1.1rem;
-  font-weight: 500;
+  margin-bottom: var(--space-6);
+  padding: var(--padding-md);
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.value-improvement .label {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+  display: block;
+}
+
+.value-improvement .value {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
 }
 
 .value-improvement .positive {
-  color: #4CAF50;
+  color: var(--success);
 }
 
 .value-improvement .negative {
-  color: #F44336;
+  color: var(--error);
 }
 
 .trade-actions {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: var(--space-3);
 }
 
 .trade-actions button {
-  padding: 10px 20px;
+  padding: var(--padding-sm) var(--padding-lg);
   border: none;
-  border-radius: 6px;
-  font-weight: 600;
+  border-radius: var(--border-radius-md);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .accept-btn {
-  background: #4CAF50;
+  background: var(--success);
   color: white;
 }
 
 .accept-btn:hover {
-  background: #45a049;
+  background: #38a169;
   transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .decline-btn {
-  background: #f44336;
-  color: white;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .decline-btn:hover {
-  background: #da190b;
-  transform: translateY(-1px);
+  background: var(--bg-hover);
+  border-color: var(--border-color-light);
 }
 
 .counter-btn {
-  background: #2196F3;
+  background: var(--primary-brand);
   color: white;
 }
 
 .counter-btn:hover {
-  background: #0b7dda;
+  background: var(--primary-brand-dark);
   transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+@media (max-width: 768px) {
+  .trade-suggestion-card {
+    padding: var(--padding-md);
+  }
+  
+  .trade-players {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  
+  .trade-arrow {
+    transform: rotate(90deg);
+    margin: var(--space-4) 0;
+  }
+  
+  .trade-actions {
+    flex-direction: column;
+  }
+  
+  .trade-actions button {
+    width: 100%;
+  }
 }
