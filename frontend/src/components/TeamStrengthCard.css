@@ -1,95 +1,178 @@
 .team-strength-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: white;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--padding-lg);
+  margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+}
+
+.team-strength-card:hover {
+  border-color: var(--border-color-light);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .strength-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .strength-header h3 {
   margin: 0;
-  font-size: 1.3rem;
-  font-weight: 600;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
 }
 
 .rank-info {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 5px 10px;
+  background: var(--bg-tertiary);
+  padding: var(--space-2) var(--space-3);
   border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.rank-value {
+  color: var(--primary-brand);
+  font-weight: var(--font-weight-bold);
 }
 
 .overall-strength {
   text-align: center;
-  margin-bottom: 25px;
+  margin-bottom: var(--space-6);
+  padding: var(--space-6);
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--border-color);
 }
 
 .strength-value {
-  font-size: 3rem;
-  font-weight: 700;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
   line-height: 1;
+  color: var(--primary-brand);
+  margin-bottom: var(--space-2);
 }
 
 .strength-label {
-  font-size: 1.2rem;
-  font-weight: 600;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 1px;
+  color: var(--text-secondary);
 }
 
 .strength-details {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 25px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
 }
 
 .strengths-section, .weaknesses-section {
-  flex: 1;
+  background: var(--bg-secondary);
+  padding: var(--padding-md);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.strengths-section {
+  border-left: 3px solid var(--success);
+}
+
+.weaknesses-section {
+  border-left: 3px solid var(--warning);
 }
 
 .strengths-section h4, .weaknesses-section h4 {
   margin-top: 0;
-  margin-bottom: 10px;
-  font-size: 1.1rem;
-  color: #e0e0e0;
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .strengths-section ul, .weaknesses-section ul {
   margin: 0;
-  padding-left: 20px;
+  padding-left: var(--space-5);
+  list-style-type: none;
 }
 
 .strengths-section li, .weaknesses-section li {
-  margin-bottom: 8px;
-  line-height: 1.4;
+  margin-bottom: var(--space-2);
+  line-height: var(--line-height-normal);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  position: relative;
+  padding-left: var(--space-4);
+}
+
+.strengths-section li:before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--success);
+  font-weight: var(--font-weight-bold);
+}
+
+.weaknesses-section li:before {
+  content: "!";
+  position: absolute;
+  left: 0;
+  color: var(--warning);
+  font-weight: var(--font-weight-bold);
 }
 
 .improvement-suggestions {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 15px;
-  border-radius: 8px;
+  background: var(--bg-secondary);
+  padding: var(--padding-md);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--primary-brand);
 }
 
 .improvement-suggestions h4 {
   margin-top: 0;
-  margin-bottom: 10px;
-  font-size: 1.1rem;
-  color: #e0e0e0;
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .improvement-suggestions p {
   margin: 0;
-  line-height: 1.5;
-  color: #f5f5f5;
+  line-height: var(--line-height-normal);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+@media (max-width: 768px) {
+  .team-strength-card {
+    padding: var(--padding-md);
+  }
+  
+  .strength-value {
+    font-size: var(--font-size-3xl);
+  }
+  
+  .strength-details {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  
+  .overall-strength {
+    padding: var(--space-4);
+  }
 }

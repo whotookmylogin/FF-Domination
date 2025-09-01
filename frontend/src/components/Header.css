@@ -1,15 +1,15 @@
 .header {
-  background: linear-gradient(to right, #1a1c2d, #2d2e40);
-  color: #ffffff;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   padding: 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-md);
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 999;
-  height: 64px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  height: 70px;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .header-content {
@@ -17,7 +17,7 @@
   justify-content: space-between;
   align-items: center;
   height: 100%;
-  padding: 0 24px;
+  padding: 0 var(--padding-lg);
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
@@ -25,19 +25,16 @@
 
 .header-brand h1 {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-  background: linear-gradient(to right, #4f9fff, #41e778);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--primary-brand);
   white-space: nowrap;
 }
 
 .header-controls {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: var(--space-6);
 }
 
 /* League dropdown styling */
@@ -51,19 +48,20 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 8px 16px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
-  color: #ffffff;
-  font-weight: 500;
-  font-size: 0.9rem;
+  padding: var(--padding-sm) var(--padding-md);
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .league-selector-btn:hover {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: var(--bg-hover);
+  border-color: var(--border-color-light);
 }
 
 .dropdown-icon {
@@ -74,13 +72,13 @@
 
 .league-dropdown-content {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + var(--space-2));
   left: 0;
   width: 100%;
-  background-color: #2d2e40;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-lg);
   z-index: 1000;
   overflow: hidden;
   display: none;
@@ -91,18 +89,18 @@
 }
 
 .league-option {
-  padding: 10px 16px;
+  padding: var(--padding-sm) var(--padding-md);
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color var(--transition-fast);
 }
 
 .league-option:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--bg-hover);
 }
 
 .league-option.active {
-  background-color: rgba(79, 159, 255, 0.2);
-  border-left: 3px solid #4f9fff;
+  background-color: rgba(0, 212, 255, 0.1);
+  border-left: 3px solid var(--primary-brand);
 }
 
 .league-platform {
@@ -115,7 +113,7 @@
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .header-dropdown {
@@ -126,54 +124,54 @@
   position: relative;
   background: none;
   border: none;
-  color: #ffffff;
-  font-size: 1rem;
-  padding: 8px;
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+  padding: var(--padding-sm);
   border-radius: 50%;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color var(--transition-fast);
 }
 
 .header-icon-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--bg-hover);
 }
 
 .notification-badge {
   position: absolute;
   top: 0;
   right: 0;
-  background-color: #ff4757;
+  background-color: var(--error);
   color: white;
   border-radius: 50%;
   width: 16px;
   height: 16px;
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #2d2e40;
+  border: 2px solid var(--bg-secondary);
 }
 
 .user-profile {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 12px;
-  background-color: rgba(255, 255, 255, 0.1);
+  gap: var(--space-3);
+  padding: var(--padding-xs) var(--padding-sm);
+  background-color: var(--bg-tertiary);
   border-radius: 24px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color var(--transition-fast);
 }
 
 .user-profile:hover,
 .user-profile.clickable:hover {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: var(--bg-hover);
 }
 
 .user-avatar {
   width: 28px;
   height: 28px;
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: var(--bg-hover);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -186,8 +184,8 @@
 }
 
 .user-name {
-  font-weight: 500;
-  font-size: 0.9rem;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
   white-space: nowrap;
   max-width: 120px;
   overflow: hidden;
@@ -197,7 +195,7 @@
 /* Dropdown Menus */
 .dropdown-menu {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + var(--space-2));
   right: 0;
   width: 320px;
   background-color: var(--bg-card);
@@ -206,7 +204,7 @@
   box-shadow: var(--shadow-lg);
   z-index: 1000;
   overflow: hidden;
-  animation: dropdownFadeIn 0.2s ease-out;
+  animation: dropdownFadeIn var(--transition-fast) ease-out;
 }
 
 @keyframes dropdownFadeIn {
@@ -401,19 +399,19 @@
 
 @media (max-width: 768px) {
   .header {
-    height: 56px;
+    height: 60px;
   }
   
   .header-content {
-    padding: 0 16px;
+    padding: 0 var(--padding-md);
   }
   
   .header-brand h1 {
-    font-size: 1rem;
+    font-size: var(--font-size-base);
   }
   
   .header-controls {
-    gap: 12px;
+    gap: var(--space-3);
   }
   
   .league-dropdown {

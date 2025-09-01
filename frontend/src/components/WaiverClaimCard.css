@@ -1,43 +1,70 @@
 .waiver-claim-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: white;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--padding-lg);
+  margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+}
+
+.waiver-claim-card:hover {
+  border-color: var(--border-color-light);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .player-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .player-header h3 {
   margin: 0;
-  font-size: 1.4rem;
-  font-weight: 600;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
 }
 
 .injury-status {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
-  font-size: 0.9rem;
+  font-size: var(--font-size-sm);
   letter-spacing: 0.5px;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--border-radius-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.injury-status.healthy {
+  background: rgba(72, 187, 120, 0.1);
+  color: var(--success);
+}
+
+.injury-status.questionable {
+  background: rgba(237, 137, 54, 0.1);
+  color: var(--warning);
+}
+
+.injury-status.out {
+  background: rgba(245, 101, 101, 0.1);
+  color: var(--error);
 }
 
 .player-details {
-  margin-bottom: 20px;
+  margin-bottom: var(--space-6);
 }
 
 .detail-item {
   display: flex;
   justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .detail-item:last-child {
@@ -45,44 +72,87 @@
 }
 
 .detail-label {
-  font-weight: 500;
-  color: #e0e0e0;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
 }
 
 .detail-value {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.detail-value.positive {
+  color: var(--success);
+}
+
+.detail-value.negative {
+  color: var(--error);
 }
 
 .waiver-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-color);
 }
 
 .claim-btn {
-  padding: 12px 24px;
-  background: #4CAF50;
+  padding: var(--padding-sm) var(--padding-lg);
+  background: var(--primary-brand);
   color: white;
   border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 1rem;
+  border-radius: var(--border-radius-md);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-base);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .claim-btn:hover:not(:disabled) {
-  background: #45a049;
+  background: var(--primary-brand-dark);
   transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .claim-btn:disabled {
-  background: #9E9E9E;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
   cursor: not-allowed;
   transform: none;
 }
 
 .faab-info {
-  font-weight: 600;
-  font-size: 1.1rem;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+}
+
+.faab-amount {
+  color: var(--primary-brand);
+  font-weight: var(--font-weight-bold);
+}
+
+@media (max-width: 768px) {
+  .waiver-claim-card {
+    padding: var(--padding-md);
+  }
+  
+  .player-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+  
+  .waiver-actions {
+    flex-direction: column;
+    gap: var(--space-3);
+    align-items: stretch;
+  }
+  
+  .claim-btn {
+    width: 100%;
+  }
 }
