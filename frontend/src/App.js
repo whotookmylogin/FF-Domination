@@ -197,7 +197,14 @@ function App() {
     }
   };
   
-<<<<<<< HEAD
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   if (loading) {
     return (
       <div className="app-container">
@@ -225,7 +232,7 @@ function App() {
 
   return (
     <Router>
-      <div className="app-container">
+      <div className={`app-container ${isMobileMenuOpen ? 'menu-open' : ''}`}>
         {/* API Status Indicator */}
         {!apiHealthy && (
           <div className="api-status-banner" style={{
@@ -267,19 +274,6 @@ function App() {
           </div>
         )}
         
-        <Header user={user} selectedLeague={selectedLeague} leagues={leagues} onLeagueChange={setSelectedLeague} />
-=======
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
-
-  return (
-    <Router>
-      <div className={`app-container ${isMobileMenuOpen ? 'menu-open' : ''}`}>
         <Header 
           user={user} 
           selectedLeague={selectedLeague} 
@@ -288,7 +282,6 @@ function App() {
           onMenuToggle={toggleMobileMenu}
           isMobileMenuOpen={isMobileMenuOpen}
         />
->>>>>>> ui
         <div className="app-layout">
           <Sidebar 
             leagues={leagues} 
