@@ -86,7 +86,7 @@
   display: none;
 }
 
-.league-dropdown:hover .league-dropdown-content {
+.league-dropdown-content.show {
   display: block;
 }
 
@@ -295,6 +295,13 @@
 .notification-time {
   color: var(--text-muted);
   font-size: var(--font-size-xs);
+}
+
+.no-notifications {
+  padding: 20px;
+  text-align: center;
+  color: #999;
+  font-size: 0.9rem;
 }
 
 .view-all-btn {

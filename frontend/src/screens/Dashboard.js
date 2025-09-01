@@ -6,6 +6,7 @@ import TeamStrengthCard from '../components/TeamStrengthCard';
 import TradeSuggestionCard from '../components/TradeSuggestionCard';
 import WaiverClaimCard from '../components/WaiverClaimCard';
 import AdvancedAnalyticsCard from '../components/AdvancedAnalyticsCard';
+import IntelligentNotifications from '../components/IntelligentNotifications';
 import ApiService from '../services/api';
 import './Dashboard.css';
 
@@ -22,11 +23,19 @@ const Dashboard = ({ league }) => {
   
   useEffect(() => {
     const fetchRealData = async () => {
+      if (!league) return;
+      
       try {
         setLoading(true);
         
-        // Fetch real roster data from backend (using team ID 7)
-        const rosterData = await ApiService.getRoster(7);
+        // Use league context for team ID
+        const teamId = league?.userTeam?.id || '7';
+        const platform = league?.platform || 'ESPN';
+        
+        console.log(`Loading dashboard for ${platform} league: ${league?.name}, Team: ${teamId}`);
+        
+        // Fetch real roster data from backend using league context
+        const rosterData = await ApiService.getRoster(teamId);
         
         if (rosterData.status === 'success') {
           // Set real roster data (handle double nesting)
@@ -34,20 +43,20 @@ const Dashboard = ({ league }) => {
           setRoster(realRoster);
           
           // Get team data for dashboard display
-          const teamData = await ApiService.getTeamData(7);
+          const teamData = await ApiService.getTeamData(teamId);
           
           if (teamData.status === 'success') {
             const realTeamData = teamData.data;
             
             // Process real team data for dashboard display
             const processedTeamData = {
-              overallRank: 7, // Could be calculated from league standings
-              totalTeams: 12,
-              teamName: realTeamData.team_name,
-              wins: realTeamData.wins,
-              losses: realTeamData.losses,
-              ties: realTeamData.ties,
-              pointsFor: realTeamData.points_for,
+              overallRank: league?.userTeam?.standing || 1,
+              totalTeams: league?.totalTeams || 12,
+              teamName: league?.userTeam?.name || realTeamData.team_name,
+              wins: league?.userTeam?.wins || realTeamData.wins || 0,
+              losses: league?.userTeam?.losses || realTeamData.losses || 0,
+              ties: realTeamData.ties || 0,
+              pointsFor: league?.pointsFor || realTeamData.points_for || 0,
               pointsAgainst: realTeamData.points_against,
               // These would come from more detailed analytics endpoints
               projectedScore: Math.round(realTeamData.points_for / 17) || 0,
@@ -171,6 +180,9 @@ const Dashboard = ({ league }) => {
           <h1>🏠 Dashboard</h1>
           <p>Your fantasy football command center</p>
         </div>
+        
+        {/* Intelligent Notifications Section */}
+        <IntelligentNotifications league={league} user={roster} />
 
         {/* Team Overview Card */}
         <div className="modern-card team-overview">

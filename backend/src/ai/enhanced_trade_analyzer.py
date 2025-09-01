@@ -3,13 +3,18 @@ Enhanced AI-Powered Trade Analyzer
 Analyzes trades across all teams in league using AI agents
 """
 
-import openai
 import requests
 from typing import Dict, List, Any, Optional, Tuple
 import logging
 from dataclasses import dataclass
 import json
 from itertools import combinations
+try:
+    from openai import OpenAI
+    openai_available = True
+except ImportError:
+    openai_available = False
+    OpenAI = None
 
 @dataclass
 class TradeOpportunity:
@@ -26,21 +31,55 @@ class TradeOpportunity:
     ai_analysis: str
     confidence_score: float
     urgency: str  # HIGH, MEDIUM, LOW
+    bye_week_impact: Dict[str, Any]  # Impact on bye week coverage
+    matchup_advantage: Dict[str, Any]  # Future matchup advantages
+    timing_recommendation: str  # When to execute trade
+    team_a_name: str = ""  # Team A name (e.g., "Trashy McTrash-Face")
+    team_b_name: str = ""  # Team B name
 
 class AITradeAnalyzer:
     """
     AI-powered trade analyzer that evaluates all possible trades across league
     """
     
-    def __init__(self, openai_key: Optional[str] = None, openrouter_key: Optional[str] = None):
-        """Initialize with AI API keys"""
+    # Model configuration - easy to change
+    MODELS = {
+        "cheap": {
+            "openai": "gpt-4o-mini",  # $0.15/1M input, $0.60/1M output
+            "openrouter": "anthropic/claude-3-haiku"  # $0.25/1M input, $1.25/1M output
+        },
+        "balanced": {
+            "openai": "gpt-4o-mini",  # Still very cost-effective
+            "openrouter": "anthropic/claude-3-haiku"  # Best value for money
+        },
+        "premium": {
+            "openai": "gpt-4",  # $30/1M input, $60/1M output (expensive!)
+            "openrouter": "anthropic/claude-3.5-sonnet"  # $3/1M input, $15/1M output
+        }
+    }
+    
+    def __init__(self, openai_key: Optional[str] = None, openrouter_key: Optional[str] = None, quality: str = "balanced"):
+        """Initialize with AI API keys
+        
+        Args:
+            openai_key: OpenAI API key
+            openrouter_key: OpenRouter API key
+            quality: Model quality tier - "cheap", "balanced", or "premium"
+        """
         self.openai_key = openai_key
         self.openrouter_key = openrouter_key
+        self.client = None
+        self.quality = quality
+        self.selected_models = self.MODELS.get(quality, self.MODELS["balanced"])
         
-        if openai_key:
-            openai.api_key = openai_key
+        if openai_key and openai_available:
+            self.client = OpenAI(api_key=openai_key)
         
         self.expert_prompt = self._load_expert_prompt()
+        
+        # Log selected models
+        logging.info(f"AI Trade Analyzer initialized with {quality} quality tier")
+        logging.info(f"Models: OpenAI={self.selected_models['openai']}, OpenRouter={self.selected_models['openrouter']}")
         
     def _load_expert_prompt(self) -> str:
         """Load the expert fantasy football agent prompt"""
@@ -54,6 +93,9 @@ Your expertise includes:
 - Team construction and roster balance
 - Market inefficiency identification
 - Psychological aspects of trading with opponents
+- Bye week management and coverage strategy
+- Upcoming matchup difficulty assessment
+- Playoff schedule strength analysis
 
 For each trade, provide:
 1. Detailed analysis of value exchange
@@ -62,50 +104,88 @@ For each trade, provide:
 4. Strategic implications 
 5. Negotiation leverage points
 6. Overall recommendation with confidence level
+7. Bye week coverage impact for both teams
+8. Matchup advantages/disadvantages for next 4 weeks
+9. Optimal timing for trade execution
 
-Be specific, actionable, and consider all contextual factors.
+Be specific, actionable, and consider all contextual factors including upcoming schedules.
 """
 
-    def analyze_all_league_trades(self, league_id: str, platform_service) -> List[TradeOpportunity]:
+    def analyze_all_league_trades(self, league_id: str, platform_service, focus_team_id: str = None) -> List[TradeOpportunity]:
         """
         Analyze all possible beneficial trades across the entire league
         
         Args:
             league_id: League identifier
             platform_service: Platform integration service
+            focus_team_id: Optional team to focus on (dramatically reduces scope)
             
         Returns:
             List of ranked trade opportunities
         """
         try:
+            logging.info(f"Starting trade analysis for league {league_id}, focus_team: {focus_team_id}")
+            
             # Get all team data from league
             all_teams = self._get_all_team_data(league_id, platform_service)
+            logging.info(f"Retrieved {len(all_teams)} teams from league")
             
             if len(all_teams) < 2:
                 logging.warning("Not enough teams found for trade analysis")
                 return []
             
-            # Find all possible trade combinations
-            trade_opportunities = []
+            # If focus_team specified, only analyze trades for that team
+            if focus_team_id:
+                focus_team = next((t for t in all_teams if t['team_id'] == focus_team_id), None)
+                if not focus_team:
+                    logging.error(f"Focus team {focus_team_id} not found")
+                    return []
+                    
+                # Only analyze trades between focus team and others
+                trade_opportunities = []
+                for other_team in all_teams:
+                    if other_team['team_id'] != focus_team_id:
+                        two_team_trades = self._find_two_team_trades(focus_team, other_team)
+                        trade_opportunities.extend(two_team_trades)
+                        
+                logging.info(f"Generated {len(trade_opportunities)} potential trades for team {focus_team_id}")
+            else:
+                # Find all possible trade combinations
+                trade_opportunities = []
+                
+                # Analyze 2-team trades
+                team_pairs = list(combinations(all_teams, 2))
+                logging.info(f"Analyzing {len(team_pairs)} team pairs for trades")
+                
+                for team_a, team_b in team_pairs:
+                    two_team_trades = self._find_two_team_trades(team_a, team_b)
+                    trade_opportunities.extend(two_team_trades)
+                
+                logging.info(f"Generated {len(trade_opportunities)} potential 2-team trades")
+                
+                # Skip 3-team trades for now (too complex/slow)
+                # if len(all_teams) >= 3:
+                #     for team_combo in combinations(all_teams, 3):
+                #         three_team_trades = self._find_three_team_trades(team_combo)
+                #         trade_opportunities.extend(three_team_trades)
             
-            # Analyze 2-team trades
-            for team_a, team_b in combinations(all_teams, 2):
-                two_team_trades = self._find_two_team_trades(team_a, team_b)
-                trade_opportunities.extend(two_team_trades)
+            # Limit number of trades to analyze with AI (top 5 most viable)
+            viable_trades = [t for t in trade_opportunities if self._is_viable_trade(t)]
+            logging.info(f"Found {len(viable_trades)} viable trades")
             
-            # Analyze 3-team trades (more complex)
-            if len(all_teams) >= 3:
-                for team_combo in combinations(all_teams, 3):
-                    three_team_trades = self._find_three_team_trades(team_combo)
-                    trade_opportunities.extend(three_team_trades)
+            # Sort by initial viability and take top 5
+            viable_trades = viable_trades[:5]
+            logging.info(f"Analyzing top {len(viable_trades)} trades with AI")
             
             # AI analysis of each trade
             enhanced_trades = []
-            for trade in trade_opportunities:
-                if self._is_viable_trade(trade):
-                    ai_enhanced = self._ai_analyze_trade(trade)
-                    if ai_enhanced:
-                        enhanced_trades.append(ai_enhanced)
+            for i, trade in enumerate(viable_trades):
+                logging.info(f"AI analyzing trade {i+1}/{len(viable_trades)}")
+                ai_enhanced = self._ai_analyze_trade(trade)
+                if ai_enhanced:
+                    enhanced_trades.append(ai_enhanced)
+                else:
+                    logging.warning(f"AI analysis failed for trade {i+1}")
             
             # Rank by overall value and feasibility
             return self._rank_trade_opportunities(enhanced_trades)
@@ -147,6 +227,22 @@ Be specific, actionable, and consider all contextual factors.
         logging.info(f"Successfully retrieved data for {len(all_teams)} teams")
         return all_teams
     
+    def _player_to_dict(self, player: Any) -> Dict[str, Any]:
+        """Convert player object to dictionary"""
+        if isinstance(player, dict):
+            return player
+        
+        # Convert player object to dict
+        try:
+            return {
+                'name': getattr(player, 'name', 'Unknown'),
+                'position': getattr(player, 'position', 'POS'),
+                'team': getattr(player, 'proTeam', 'FA'),
+                'injury_status': getattr(player, 'injuryStatus', None)
+            }
+        except:
+            return {'name': str(player), 'position': 'POS', 'team': 'FA'}
+    
     def _find_two_team_trades(self, team_a: Dict[str, Any], team_b: Dict[str, Any]) -> List[TradeOpportunity]:
         """Find beneficial 2-team trades"""
         trades = []
@@ -166,19 +262,36 @@ Be specific, actionable, and consider all contextual factors.
                 trade_return = self._find_trade_return(team_a, team_b_needs, player)
                 
                 if trade_return:
+                    # Convert players to dicts
+                    trade_return_dicts = [self._player_to_dict(p) for p in trade_return]
+                    player_dict = self._player_to_dict(player)
+                    
+                    # Analyze bye week and matchup impacts
+                    bye_impact = self._analyze_bye_week_impact(
+                        team_a, team_b, trade_return_dicts, [player_dict]
+                    )
+                    matchup_adv = self._analyze_matchup_advantage(
+                        team_a, team_b, trade_return_dicts, [player_dict]
+                    )
+                    
                     trade = TradeOpportunity(
                         team_a_id=team_a['team_id'],
                         team_b_id=team_b['team_id'],
-                        team_a_gives=trade_return,
-                        team_a_gets=[player],
-                        team_b_gives=[player],
-                        team_b_gets=trade_return,
+                        team_a_name=team_a.get('team_name', f"Team {team_a['team_id']}"),
+                        team_b_name=team_b.get('team_name', f"Team {team_b['team_id']}"),
+                        team_a_gives=trade_return_dicts,
+                        team_a_gets=[player_dict],
+                        team_b_gives=[player_dict],
+                        team_b_gets=trade_return_dicts,
                         fairness_score=0.0,  # Will be calculated
                         team_a_improvement=0.0,  # Will be calculated
                         team_b_improvement=0.0,  # Will be calculated
                         ai_analysis="",  # Will be filled by AI
                         confidence_score=0.0,
-                        urgency="MEDIUM"
+                        urgency="MEDIUM",
+                        bye_week_impact=bye_impact,
+                        matchup_advantage=matchup_adv,
+                        timing_recommendation=self._determine_trade_timing(bye_impact, matchup_adv)
                     )
                     trades.append(trade)
         
@@ -316,10 +429,22 @@ Be specific, actionable, and consider all contextual factors.
             trade_context = self._format_trade_for_ai(trade)
             
             # Make AI request
+            response = None
             if self.openai_key:
+                logging.info("Querying OpenAI for trade analysis...")
                 response = self._query_openai(trade_context)
-            else:
+                if response:
+                    logging.info("OpenAI analysis successful")
+                else:
+                    logging.warning("OpenAI query failed")
+            
+            if not response and self.openrouter_key:
+                logging.info("Querying OpenRouter for trade analysis...")
                 response = self._query_openrouter(trade_context)
+                if response:
+                    logging.info("OpenRouter analysis successful")
+                else:
+                    logging.warning("OpenRouter query failed")
             
             if response:
                 trade.ai_analysis = response.get('analysis', '')
@@ -348,33 +473,44 @@ Be specific, actionable, and consider all contextual factors.
         team_a_gets_str = ", ".join([p.get('name', 'Unknown') + f" ({p.get('position', 'POS')})" 
                                     for p in trade.team_a_gets])
         
+        # Check if Team A is Team 7 (Trashy McTrash-Face)
+        is_our_team = trade.team_a_id == "7"
+        our_team_label = "Trashy McTrash-Face (Team 7)" if is_our_team else f"Team {trade.team_a_id}"
+        other_team_label = f"Team {trade.team_b_id}"
+        
         return f"""
-Analyze this fantasy football trade:
+Analyze this fantasy football trade from the perspective of {our_team_label}:
 
-Team A (ID: {trade.team_a_id}):
-- Gives: {team_a_gives_str}
-- Gets: {team_a_gets_str}
+{our_team_label}:
+- GIVES AWAY: {team_a_gives_str}
+- RECEIVES: {team_a_gets_str}
 
-Team B (ID: {trade.team_b_id}):
-- Gives: {", ".join([p.get('name', 'Unknown') + f" ({p.get('position', 'POS')})" for p in trade.team_b_gives])}
-- Gets: {", ".join([p.get('name', 'Unknown') + f" ({p.get('position', 'POS')})" for p in trade.team_b_gets])}
+{other_team_label}:
+- GIVES AWAY: {", ".join([p.get('name', 'Unknown') + f" ({p.get('position', 'POS')})" for p in trade.team_b_gives])}
+- RECEIVES: {", ".join([p.get('name', 'Unknown') + f" ({p.get('position', 'POS')})" for p in trade.team_b_gets])}
 
-Provide detailed analysis including:
-1. Trade fairness (1-100 scale)
-2. Impact on each team's playoff chances
-3. Risk assessment
-4. Overall recommendation
-5. Confidence level (0-1)
-6. Urgency (HIGH/MEDIUM/LOW)
+IMPORTANT: Focus your analysis on whether this trade helps Trashy McTrash-Face (Team 7) win their league.
 
-Format as JSON with fields: analysis, fairness_score, team_a_improvement, team_b_improvement, confidence, urgency
+Provide your analysis in PLAIN ENGLISH (not JSON) covering:
+1. Why this trade helps or hurts Trashy McTrash-Face
+2. The immediate impact on Team 7's starting lineup
+3. How this affects Team 7's playoff chances (1-100 score)
+4. Any risks Team 7 should consider
+5. Your recommendation: STRONGLY ACCEPT, ACCEPT, CONSIDER, DECLINE, or STRONGLY DECLINE
+6. One-sentence summary of why Team 7 should or shouldn't do this trade
+
+Be conversational and explain in terms a casual fantasy player would understand. Focus on Team 7's benefit.
 """
     
     def _query_openai(self, trade_context: str) -> Optional[Dict[str, Any]]:
         """Query OpenAI for trade analysis"""
+        if not self.client:
+            logging.error("OpenAI client not initialized")
+            return None
+            
         try:
-            response = openai.ChatCompletion.create(
-                model="gpt-4",
+            response = self.client.chat.completions.create(
+                model=self.selected_models['openai'],  # Uses configured model based on quality tier
                 messages=[
                     {"role": "system", "content": self.expert_prompt},
                     {"role": "user", "content": trade_context}
@@ -385,19 +521,44 @@ Format as JSON with fields: analysis, fairness_score, team_a_improvement, team_b
             
             ai_response = response.choices[0].message.content
             
-            # Try to parse as JSON
-            try:
-                return json.loads(ai_response)
-            except json.JSONDecodeError:
-                # Fallback to text analysis
-                return {
-                    'analysis': ai_response,
-                    'fairness_score': 50.0,
-                    'team_a_improvement': 0.0,
-                    'team_b_improvement': 0.0,
-                    'confidence': 0.7,
-                    'urgency': 'MEDIUM'
-                }
+            # Parse the response to extract key metrics
+            analysis_text = ai_response
+            
+            # Try to extract scores and recommendation from the text
+            fairness = 50.0
+            improvement = 0.0
+            urgency = 'MEDIUM'
+            
+            # Look for recommendation keywords
+            if 'STRONGLY ACCEPT' in ai_response.upper():
+                fairness = 85.0
+                improvement = 15.0
+                urgency = 'HIGH'
+            elif 'ACCEPT' in ai_response.upper() and 'DECLINE' not in ai_response.upper():
+                fairness = 70.0
+                improvement = 8.0
+                urgency = 'HIGH'
+            elif 'CONSIDER' in ai_response.upper():
+                fairness = 55.0
+                improvement = 3.0
+                urgency = 'MEDIUM'
+            elif 'STRONGLY DECLINE' in ai_response.upper():
+                fairness = 20.0
+                improvement = -10.0
+                urgency = 'LOW'
+            elif 'DECLINE' in ai_response.upper():
+                fairness = 35.0
+                improvement = -5.0
+                urgency = 'LOW'
+            
+            return {
+                'analysis': analysis_text,
+                'fairness_score': fairness,
+                'team_a_improvement': improvement,
+                'team_b_improvement': 0.0,
+                'confidence': 0.8,
+                'urgency': urgency
+            }
                 
         except Exception as e:
             logging.error(f"OpenAI query failed: {e}")
@@ -413,7 +574,7 @@ Format as JSON with fields: analysis, fairness_score, team_a_improvement, team_b
                     "Content-Type": "application/json"
                 },
                 json={
-                    "model": "anthropic/claude-3-sonnet",
+                    "model": self.selected_models['openrouter'],  # Uses configured model based on quality tier
                     "messages": [
                         {"role": "system", "content": self.expert_prompt},
                         {"role": "user", "content": trade_context}
@@ -459,6 +620,159 @@ Format as JSON with fields: analysis, fairness_score, team_a_improvement, team_b
                    urgency_factor * 0.1)
         
         return sorted(trades, key=trade_score, reverse=True)
+    
+    def _analyze_bye_week_impact(
+        self,
+        team_a: Dict[str, Any],
+        team_b: Dict[str, Any],
+        team_a_gives: List[Dict[str, Any]],
+        team_a_gets: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """
+        Analyze how trade affects bye week coverage for both teams
+        """
+        bye_impact = {
+            "team_a": {"improves": False, "weeks_affected": [], "details": ""},
+            "team_b": {"improves": False, "weeks_affected": [], "details": ""}
+        }
+        
+        # Check bye weeks for players being traded
+        for player in team_a_gives:
+            bye_week = player.get("bye_week", 0)
+            if bye_week > 0:
+                position = player.get("position")
+                # Check if team_a has other players at this position for bye week
+                coverage = self._check_bye_coverage(team_a, position, bye_week, exclude_players=team_a_gives)
+                if not coverage:
+                    bye_impact["team_a"]["weeks_affected"].append(bye_week)
+                    bye_impact["team_a"]["details"] += f"Losing {position} coverage for week {bye_week}. "
+        
+        for player in team_a_gets:
+            bye_week = player.get("bye_week", 0)
+            if bye_week > 0:
+                position = player.get("position")
+                # Check if this helps team_a's bye week issues
+                existing_byes = self._get_position_bye_weeks(team_a, position)
+                if bye_week not in existing_byes:
+                    bye_impact["team_a"]["improves"] = True
+                    bye_impact["team_a"]["details"] += f"Gaining {position} with different bye week ({bye_week}). "
+        
+        # Similar analysis for team_b (reverse of team_a)
+        bye_impact["team_b"]["improves"] = not bye_impact["team_a"]["improves"]
+        bye_impact["team_b"]["weeks_affected"] = bye_impact["team_a"]["weeks_affected"]
+        
+        return bye_impact
+    
+    def _analyze_matchup_advantage(
+        self,
+        team_a: Dict[str, Any],
+        team_b: Dict[str, Any],
+        team_a_gives: List[Dict[str, Any]],
+        team_a_gets: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """
+        Analyze matchup advantages for next 4 weeks
+        """
+        matchup_advantage = {
+            "team_a": {"weeks_improved": [], "strength_change": 0, "details": ""},
+            "team_b": {"weeks_improved": [], "strength_change": 0, "details": ""}
+        }
+        
+        # Simplified matchup analysis
+        # In production, would use actual schedule and defensive rankings
+        for player in team_a_gets:
+            # Check upcoming matchups (placeholder logic)
+            easy_matchups = self._get_easy_matchups(player)
+            if easy_matchups:
+                matchup_advantage["team_a"]["weeks_improved"].extend(easy_matchups)
+                matchup_advantage["team_a"]["strength_change"] += len(easy_matchups) * 2
+                matchup_advantage["team_a"]["details"] += f"{player.get('name')} has {len(easy_matchups)} favorable matchups. "
+        
+        for player in team_a_gives:
+            hard_matchups = self._get_hard_matchups(player)
+            if hard_matchups:
+                matchup_advantage["team_a"]["strength_change"] -= len(hard_matchups)
+                matchup_advantage["team_a"]["details"] += f"Losing {player.get('name')} avoids {len(hard_matchups)} tough matchups. "
+        
+        # Team B gets opposite impact
+        matchup_advantage["team_b"]["strength_change"] = -matchup_advantage["team_a"]["strength_change"]
+        
+        return matchup_advantage
+    
+    def _determine_trade_timing(
+        self,
+        bye_impact: Dict[str, Any],
+        matchup_advantage: Dict[str, Any]
+    ) -> str:
+        """
+        Determine optimal timing for trade execution
+        """
+        # Check urgency based on bye weeks
+        if bye_impact["team_a"]["weeks_affected"]:
+            earliest_bye = min(bye_impact["team_a"]["weeks_affected"])
+            if earliest_bye <= 2:  # Next 2 weeks
+                return "EXECUTE IMMEDIATELY - Bye week coverage needed"
+        
+        # Check matchup advantages
+        if matchup_advantage["team_a"]["strength_change"] > 5:
+            return "EXECUTE THIS WEEK - Strong upcoming matchups"
+        elif matchup_advantage["team_a"]["strength_change"] < -3:
+            return "WAIT 1-2 WEEKS - Better matchups later"
+        
+        return "FLEXIBLE TIMING - Execute when convenient"
+    
+    def _check_bye_coverage(
+        self,
+        team: Dict[str, Any],
+        position: str,
+        bye_week: int,
+        exclude_players: List[Dict[str, Any]] = None
+    ) -> bool:
+        """
+        Check if team has coverage for a position during bye week
+        """
+        exclude_ids = [p.get("player_id") for p in (exclude_players or [])]
+        roster = team.get("roster", [])
+        
+        for player in roster:
+            if (player.get("position") == position and 
+                player.get("bye_week") != bye_week and
+                player.get("player_id") not in exclude_ids):
+                return True
+        return False
+    
+    def _get_position_bye_weeks(self, team: Dict[str, Any], position: str) -> List[int]:
+        """
+        Get all bye weeks for a position on team
+        """
+        bye_weeks = []
+        for player in team.get("roster", []):
+            if player.get("position") == position:
+                bye_week = player.get("bye_week", 0)
+                if bye_week > 0:
+                    bye_weeks.append(bye_week)
+        return bye_weeks
+    
+    def _get_easy_matchups(self, player: Dict[str, Any]) -> List[int]:
+        """
+        Get weeks with easy matchups for player (placeholder)
+        """
+        # In production, would check actual schedule
+        # For now, return random weeks as example
+        import random
+        if random.random() > 0.5:
+            return [1, 3]  # Example easy matchup weeks
+        return []
+    
+    def _get_hard_matchups(self, player: Dict[str, Any]) -> List[int]:
+        """
+        Get weeks with difficult matchups for player (placeholder)
+        """
+        # In production, would check actual schedule
+        import random
+        if random.random() > 0.5:
+            return [2, 4]  # Example hard matchup weeks
+        return []
 
 # Example usage:
 # analyzer = AITradeAnalyzer(openai_key="your_key", openrouter_key="your_key")  

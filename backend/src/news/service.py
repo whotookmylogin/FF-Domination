@@ -1,6 +1,10 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from .sources import ESPNNewsSource, NFLNewsSource, RotowireNewsSource
 import logging
+try:
+    from sqlalchemy.orm import Session
+except ImportError:
+    Session = Any  # Fallback type hint if SQLAlchemy not available
 
 class NewsAggregationService:
     """
@@ -77,8 +81,168 @@ class NewsAggregationService:
             logging.error(f"Unknown news source: {source_name}")
             return []
 
+    def _deduplicate_news(self, news_items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Remove duplicate news items based on content similarity.
+        
+        Args:
+            news_items (list): List of news items to deduplicate
+            
+        Returns:
+            list: Deduplicated news items
+        """
+        if not news_items:
+            return []
+        
+        seen_hashes = set()
+        unique_news = []
+        
+        for item in news_items:
+            # Create a hash based on title and first 100 chars of content
+            title = item.get('title', '').strip().lower()
+            content = item.get('content', '')[:100].strip().lower()
+            
+            # Create unique identifier
+            content_hash = hashlib.md5(f"{title}_{content}".encode()).hexdigest()
+            
+            if content_hash not in seen_hashes:
+                seen_hashes.add(content_hash)
+                unique_news.append(item)
+        
+        return unique_news
+    
+    def _enhance_urgency_scores(self, news_items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Enhance urgency scores based on advanced keyword analysis.
+        
+        Args:
+            news_items (list): List of news items to enhance
+            
+        Returns:
+            list: News items with enhanced urgency scores
+        """
+        for item in news_items:
+            enhanced_score = self._calculate_enhanced_urgency(item)
+            item['urgency_score'] = max(item.get('urgency_score', 0), enhanced_score)
+        
+        return news_items
+    
+    def _calculate_enhanced_urgency(self, item: Dict[str, Any]) -> int:
+        """
+        Calculate enhanced urgency score based on multiple factors.
+        
+        Args:
+            item (dict): News item to score
+            
+        Returns:
+            int: Urgency score (1-5)
+        """
+        title = item.get('title', '').lower()
+        content = item.get('content', '').lower()
+        text = f"{title} {content}"
+        
+        # Check for urgent keywords
+        for urgency_level in sorted(self.urgent_keywords.keys(), reverse=True):
+            keywords = self.urgent_keywords[urgency_level]
+            if any(keyword in text for keyword in keywords):
+                return urgency_level
+        
+        # Default urgency
+        return 1
+    
+    def refresh_cache(self) -> Dict[str, Any]:
+        """
+        Force refresh of all cached news data.
+        
+        Returns:
+            dict: Status of cache refresh operation
+        """
+        try:
+            # Clear all news-related cache keys
+            cache_keys = [
+                "aggregated_news",
+                "breaking_news_4",
+                "breaking_news_5",
+                "news_source_espn",
+                "news_source_nfl",
+                "news_source_rotowire"
+            ]
+            
+            cleared_count = 0
+            for key in cache_keys:
+                if self.cache_service.delete(key):
+                    cleared_count += 1
+            
+            # Fetch fresh data
+            fresh_news = self.aggregate_news(use_cache=False)
+            
+            self.logger.info(f"Cache refresh completed: {cleared_count} keys cleared, {len(fresh_news)} fresh items")
+            
+            return {
+                "status": "success",
+                "cleared_keys": cleared_count,
+                "fresh_items": len(fresh_news)
+            }
+        except Exception as e:
+            self.logger.error(f"Cache refresh failed: {str(e)}")
+            return {
+                "status": "error",
+                "message": str(e)
+            }
+    
+    def save_news_to_database(self, league_id: str, news_items: List[Dict[str, Any]], db_session: Session) -> int:
+        """
+        Save news items to the database for persistent storage.
+        
+        Args:
+            league_id (str): League ID to associate with news items
+            news_items (list): List of news items to save
+            db_session (Session): Database session
+            
+        Returns:
+            int: Number of news items saved
+        """
+        saved_count = 0
+        
+        try:
+            for item in news_items:
+                # Check if news item already exists
+                existing = db_session.query(NewsItem).filter_by(
+                    title=item.get('title'),
+                    source=item.get('source'),
+                    league_id=league_id
+                ).first()
+                
+                if not existing:
+                    news_item = NewsItem(
+                        id=hashlib.md5(f"{item.get('title')}_{item.get('source')}_{league_id}".encode()).hexdigest()[:32],
+                        league_id=league_id,
+                        title=item.get('title', ''),
+                        source=item.get('source', ''),
+                        urgency=item.get('urgency_score', 1),
+                        summary=item.get('content', '')[:1000],  # Truncate to fit TEXT field
+                        link=item.get('url', ''),
+                        published_at=datetime.fromisoformat(item.get('timestamp', datetime.now().isoformat())),
+                        created_at=datetime.now()
+                    )
+                    
+                    db_session.add(news_item)
+                    saved_count += 1
+            
+            db_session.commit()
+            self.logger.info(f"Saved {saved_count} news items to database")
+            
+        except Exception as e:
+            db_session.rollback()
+            self.logger.error(f"Failed to save news items to database: {str(e)}")
+            raise
+        
+        return saved_count
+
 # Example usage:
-# news_service = NewsAggregationService(rotowire_api_key="your_api_key_here")
+# cache_service = CacheService()
+# news_service = NewsAggregationService(rotowire_api_key="your_api_key_here", cache_service=cache_service)
 # all_news = news_service.aggregate_news()
 # breaking_news = news_service.get_breaking_news()
 # espn_news = news_service.get_news_by_source("ESPN")
+# refresh_status = news_service.refresh_cache()

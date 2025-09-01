@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import './Sidebar.css';
 
 const Sidebar = ({ leagues, selectedLeague, onLeagueChange }) => {
@@ -44,69 +45,59 @@ const Sidebar = ({ leagues, selectedLeague, onLeagueChange }) => {
       
       <nav className="sidebar-nav">
         <ul>
-          {/* Main Dashboard */}
+          {/* Core Features - Daily Use */}
           <li className="nav-section-header">
-            <span className="section-title">📊 Overview</span>
+            <span className="section-title">📊 Daily Tools</span>
           </li>
           <li className="nav-item">
-            <a href="/" className="nav-link">🏠 Dashboard</a>
-          </li>
-          
-          {/* Team Management */}
-          <li className="nav-section-header">
-            <span className="section-title">👥 Team Management</span>
+            <Link to="/" className="nav-link">🏠 Dashboard</Link>
           </li>
           <li className="nav-item">
-            <a href="/team-import" className="nav-link import-link">
-              ⚡ Import Team
-            </a>
-          </li>
-          <li className="nav-item">
-            <a href="/team-rosters" className="nav-link roster-link">
+            <Link to="/team-rosters" className="nav-link roster-link">
               🏈 My Roster
-            </a>
+            </Link>
           </li>
           <li className="nav-item">
-            <a href="/team-rosters?view=league" className="nav-link">
-              🏆 League Rosters
-            </a>
+            <Link to="/waiver-wire" className="nav-link">🏃 Waiver Wire</Link>
           </li>
           <li className="nav-item">
-            <a href="/team-analysis" className="nav-link">📈 Team Analysis</a>
-          </li>
-          
-          {/* Trading & Transactions */}
-          <li className="nav-section-header">
-            <span className="section-title">🔄 Trading & Moves</span>
-          </li>
-          <li className="nav-item">
-            <a href="/ai-trade-discovery" className="nav-link ai-link">
+            <Link to="/ai-trade-discovery" className="nav-link ai-link">
               🤖 AI Trade Discovery
-            </a>
-          </li>
-          <li className="nav-item">
-            <a href="/trade-suggestions" className="nav-link">💡 Trade Suggestions</a>
-          </li>
-          <li className="nav-item">
-            <a href="/waiver-wire" className="nav-link">🏃 Waiver Wire</a>
+            </Link>
           </li>
           
-          {/* Draft Tools */}
+          {/* League Information */}
           <li className="nav-section-header">
-            <span className="section-title">🏆 Draft Tools</span>
+            <span className="section-title">🏆 League</span>
           </li>
           <li className="nav-item">
-            <a href="/expert-draft-tool" className="nav-link expert-link">
-              🏆 Expert Draft Tool
-            </a>
+            <Link to="/team-rosters?view=league" className="nav-link">
+              👥 League Rosters
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/team-analysis" className="nav-link">📈 Team Analysis</Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/trade-suggestions" className="nav-link">💡 Trade Ideas</Link>
           </li>
           
-          {/* Information */}
+          {/* News & Updates */}
           <li className="nav-section-header">
-            <span className="section-title">📰 Information</span>
+            <span className="section-title">📰 Updates</span>
           </li>
           <li className="nav-item">
-            <a href="/news" className="nav-link">📰 News Feed</a>
+            <Link to="/news" className="nav-link">📰 News Feed</Link>
+          </li>
+          
+          {/* Settings - Move all setup items here */}
+          <li className="nav-section-header">
+            <span className="section-title">⚙️ Setup</span>
+          </li>
+          <li className="nav-item">
+            <Link to="/settings" className="nav-link">
+              ⚙️ Settings
+            </Link>
           </li>
         </ul>
       </nav>

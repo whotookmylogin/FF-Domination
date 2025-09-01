@@ -3,27 +3,36 @@ import time
 from typing import Dict, Any, Optional
 import logging
 from requests.exceptions import RequestException
+from .espn_mock_data import ESPNMockDataProvider
 
 # ESPN Integration Service
 # Cookie-based auth flow with rate limiting and error handling
 
 class ESPNIntegration:
-    def __init__(self, cookie: str):
+    def __init__(self, cookie: str = None):
         """
         Initialize ESPN integration with user cookie.
         
         Args:
-            cookie (str): ESPN authentication cookie
+            cookie (str, optional): ESPN authentication cookie. If None, will use mock data.
         """
         self.cookie = cookie
+        self.use_mock_data = not bool(cookie)
         self.base_url = "https://fantasy.espn.com"
-        self.headers = {
-            "Cookie": cookie,
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        }
+        
+        if cookie:
+            self.headers = {
+                "Cookie": cookie,
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            }
+        else:
+            self.headers = {}
+            logging.info("ESPN Integration initialized in mock data mode (no credentials provided)")
+            
         self.rate_limit = 100  # requests per minute
         self.requests_made = 0
         self.last_reset = time.time()
+        self.mock_provider = ESPNMockDataProvider()
         
     def _check_rate_limit(self):
         """Check and enforce rate limiting."""
@@ -96,8 +105,19 @@ class ESPNIntegration:
         Returns:
             dict: Roster data or None if error
         """
+        if self.use_mock_data:
+            logging.info("Using mock data for roster data (no ESPN credentials)")
+            return self.mock_provider.get_mock_roster_data(year, league_id)
+            
         url = f"{self.base_url}/fantasy/api/v3/games/ffl/seasons/{year}/segments/0/leagues/{league_id}"
-        return self._make_request(url)
+        result = self._make_request(url)
+        
+        # If real API fails, fallback to mock data
+        if result is None:
+            logging.warning("ESPN API failed, falling back to mock data")
+            return self.mock_provider.get_mock_roster_data(year, league_id)
+            
+        return result
     
     def get_transactions_data(self, year: int, league_id: str) -> Optional[Dict[Any, Any]]:
         """
@@ -110,8 +130,19 @@ class ESPNIntegration:
         Returns:
             dict: Transactions data or None if error
         """
+        if self.use_mock_data:
+            logging.info("Using mock data for transactions data (no ESPN credentials)")
+            return self.mock_provider.get_mock_transactions_data(year, league_id)
+            
         url = f"{self.base_url}/fantasy/api/v3/games/ffl/seasons/{year}/segments/0/leagues/{league_id}/transactions"
-        return self._make_request(url)
+        result = self._make_request(url)
+        
+        # If real API fails, fallback to mock data
+        if result is None:
+            logging.warning("ESPN API failed, falling back to mock data")
+            return self.mock_provider.get_mock_transactions_data(year, league_id)
+            
+        return result
     
     def get_players_data(self, year: int) -> Optional[Dict[Any, Any]]:
         """
@@ -123,8 +154,19 @@ class ESPNIntegration:
         Returns:
             dict: Players data or None if error
         """
+        if self.use_mock_data:
+            logging.info("Using mock data for players data (no ESPN credentials)")
+            return self.mock_provider.get_mock_players_data(year)
+            
         url = f"{self.base_url}/fantasy/api/v3/games/ffl/seasons/{year}/players"
-        return self._make_request(url)
+        result = self._make_request(url)
+        
+        # If real API fails, fallback to mock data
+        if result is None:
+            logging.warning("ESPN API failed, falling back to mock data")
+            return self.mock_provider.get_mock_players_data(year)
+            
+        return result
     
     def get_user_data(self, user_id: str) -> Optional[Dict[Any, Any]]:
         """
@@ -136,8 +178,19 @@ class ESPNIntegration:
         Returns:
             dict: User data or None if error
         """
+        if self.use_mock_data:
+            logging.info("Using mock data for user data (no ESPN credentials)")
+            return self.mock_provider.get_mock_user_data(user_id)
+            
         url = f"{self.base_url}/fantasy/api/v3/users/{user_id}"
-        return self._make_request(url)
+        result = self._make_request(url)
+        
+        # If real API fails, fallback to mock data
+        if result is None:
+            logging.warning("ESPN API failed, falling back to mock data")
+            return self.mock_provider.get_mock_user_data(user_id)
+            
+        return result
 
 # Example usage:
 # espn = ESPNIntegration("your_espn_cookie_here")

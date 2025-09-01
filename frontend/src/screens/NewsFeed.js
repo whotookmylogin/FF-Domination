@@ -6,69 +6,37 @@ const NewsFeed = ({ league }) => {
   const [newsItems, setNewsItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [error, setError] = useState(null);
   
   useEffect(() => {
-    // In a real implementation, this would fetch data from the news service
     const fetchNews = async () => {
       setLoading(true);
+      setError(null);
       
-      // Mock news items
-      const mockNewsItems = [
-        {
-          id: 1,
-          title: "Player X Suffers Ankle Injury, Expected to Miss 2 Weeks",
-          source: "ESPN",
-          urgency: 5,
-          timestamp: "2023-09-15T10:30:00Z",
-          summary: "Key starter Player X will be out for multiple weeks, creating an opportunity for waiver wire pickups. This affects fantasy projections for multiple teams in your league.",
-          link: "https://espn.com/news/player-x-injury"
-        },
-        {
-          id: 2,
-          title: "Team Y's Starting QB Questionable for Upcoming Game",
-          source: "NFL.com",
-          urgency: 4,
-          timestamp: "2023-09-15T08:15:00Z",
-          summary: "Backup QB expected to start, affecting fantasy projections for multiple players. Consider adjusting your lineup accordingly.",
-          link: "https://nfl.com/news/team-y-qb-questionable"
-        },
-        {
-          id: 3,
-          title: "Weather Conditions to Impact Sunday's Games",
-          source: "Rotowire",
-          urgency: 3,
-          timestamp: "2023-09-14T16:45:00Z",
-          summary: "Heavy rain forecast for several games, affecting passing and rushing statistics projections. Players in outdoor games may see reduced performance.",
-          link: "https://rotowire.com/news/weather-impact"
-        },
-        {
-          id: 4,
-          title: "Player Z Suspension Lifted, Available Immediately",
-          source: "ESPN",
-          urgency: 5,
-          timestamp: "2023-09-14T14:20:00Z",
-          summary: "Player Z's suspension has been lifted and they're available for immediate pickup. Strong projected performance for remainder of season.",
-          link: "https://espn.com/news/player-z-suspension-lifted"
-        },
-        {
-          id: 5,
-          title: "Rookie Player A Showing Strong Training Camp Performance",
-          source: "NFL.com",
-          urgency: 2,
-          timestamp: "2023-09-13T11:05:00Z",
-          summary: "Rookie Player A is impressing coaches in training camp and could see increased playing time soon. Consider stashing on your bench for future value.",
-          link: "https://nfl.com/news/rookie-player-a-performance"
+      try {
+        // Fetch real news from backend
+        const response = await fetch('http://localhost:8000/news/aggregated');
+        const data = await response.json();
+        
+        if (data.status === 'success' && data.news && data.news.length > 0) {
+          setNewsItems(data.news);
+        } else {
+          setNewsItems([]);
+          setError('No news articles available at this time.');
         }
-      ];
-      
-      setNewsItems(mockNewsItems);
-      setLoading(false);
+      } catch (err) {
+        console.error('Error fetching news:', err);
+        setNewsItems([]);
+        setError('Unable to fetch news. Please check your connection and try again.');
+      } finally {
+        setLoading(false);
+      }
     };
     
     if (league) {
       fetchNews();
     }
-  }, [league, filter]);
+  }, [league]);
   
   const filteredNews = newsItems.filter(item => {
     if (filter === 'all') return true;
@@ -110,11 +78,45 @@ const NewsFeed = ({ league }) => {
         </div>
       </div>
       
-      <div className="news-grid">
-        {filteredNews.map(item => (
-          <NewsCard key={item.id} newsItem={item} />
-        ))}
-      </div>
+      {error && (
+        <div className="info-banner" style={{
+          backgroundColor: '#fff3cd',
+          color: '#856404',
+          padding: '15px',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px'
+        }}>
+          <span style={{ fontSize: '20px' }}>📰</span>
+          <div>
+            <strong>News Feed Status</strong>
+            <div style={{ fontSize: '14px', marginTop: '5px' }}>{error}</div>
+          </div>
+        </div>
+      )}
+      
+      {filteredNews.length === 0 && !error && (
+        <div className="empty-state" style={{
+          textAlign: 'center',
+          padding: '40px',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '8px'
+        }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📰</div>
+          <h3>No News Articles Available</h3>
+          <p>Check back later for the latest fantasy football news.</p>
+        </div>
+      )}
+      
+      {filteredNews.length > 0 && (
+        <div className="news-grid">
+          {filteredNews.map(item => (
+            <NewsCard key={item.id} newsItem={item} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

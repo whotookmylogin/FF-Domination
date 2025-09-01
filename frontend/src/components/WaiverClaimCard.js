@@ -3,10 +3,13 @@ import './WaiverClaimCard.css';
 
 const WaiverClaimCard = ({ player, onClaim, faabBudget }) => {
   const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
+    // Ensure status is a string before calling toLowerCase
+    const statusStr = String(status || 'Active');
+    switch (statusStr.toLowerCase()) {
       case 'questionable': return '#FF9800';
       case 'doubtful': return '#F44336';
       case 'out': return '#F44336';
+      case 'ir': return '#9C27B0';
       default: return '#4CAF50';
     }
   };

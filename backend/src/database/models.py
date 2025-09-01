@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean, Text
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean, Text, UniqueConstraint, JSON
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -19,6 +19,8 @@ class User(Base):
     # Relationships
     leagues = relationship("League", back_populates="user")
     credentials = relationship("UserCredential", back_populates="user")
+    notifications = relationship("Notification", back_populates="user")
+    notification_preferences = relationship("NotificationPreferences", back_populates="user", uselist=False)
 
 class League(Base):
     """
@@ -164,3 +166,114 @@ class NewsItem(Base):
     
     # Relationships
     league = relationship("League", back_populates="news")
+
+class UserCredential(Base):
+    """
+    UserCredential model for storing encrypted user credentials.
+    """
+    __tablename__ = 'user_credentials'
+    
+    id = Column(String, primary_key=True)
+    user_id = Column(String, ForeignKey('users.id'), nullable=False)
+    platform = Column(String, nullable=False)  # ESPN, Sleeper, etc.
+    credential_type = Column(String, nullable=False)  # cookie, token, etc.
+    encrypted_value = Column(Text, nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    updated_at = Column(DateTime, nullable=False)
+    
+    # Relationships
+    user = relationship("User", back_populates="credentials")
+    
+    # Composite unique constraint
+    __table_args__ = (
+        UniqueConstraint('user_id', 'platform', 'credential_type', name='unique_user_platform_credential'),
+    )
+
+class Notification(Base):
+    """
+    Notification model representing a notification sent to a user.
+    """
+    __tablename__ = 'notifications'
+    
+    id = Column(String, primary_key=True)
+    user_id = Column(String, ForeignKey('users.id'), nullable=False)
+    title = Column(String, nullable=False)
+    message = Column(Text, nullable=False)
+    notification_type = Column(String, nullable=False)  # trade, waiver, news, lineup, injury
+    priority = Column(Integer, default=1)  # 1-5 scale (1=low, 5=urgent)
+    read = Column(Boolean, default=False)
+    sent_via_email = Column(Boolean, default=False)
+    sent_via_push = Column(Boolean, default=False)
+    sent_via_sms = Column(Boolean, default=False)
+    data = Column(JSON, nullable=True)  # Additional notification data
+    scheduled_at = Column(DateTime, nullable=True)  # For scheduled notifications
+    created_at = Column(DateTime, nullable=False)
+    updated_at = Column(DateTime, nullable=False)
+    
+    # Relationships
+    user = relationship("User", back_populates="notifications")
+
+class NotificationPreferences(Base):
+    """
+    NotificationPreferences model representing user's notification preferences.
+    """
+    __tablename__ = 'notification_preferences'
+    
+    id = Column(String, primary_key=True)
+    user_id = Column(String, ForeignKey('users.id'), nullable=False)
+    
+    # Email preferences
+    email_enabled = Column(Boolean, default=True)
+    email_trade_proposals = Column(Boolean, default=True)
+    email_waiver_results = Column(Boolean, default=True)
+    email_breaking_news = Column(Boolean, default=True)
+    email_lineup_reminders = Column(Boolean, default=True)
+    email_injury_updates = Column(Boolean, default=True)
+    
+    # Push notification preferences
+    push_enabled = Column(Boolean, default=True)
+    push_trade_proposals = Column(Boolean, default=True)
+    push_waiver_results = Column(Boolean, default=True)
+    push_breaking_news = Column(Boolean, default=True)
+    push_lineup_reminders = Column(Boolean, default=True)
+    push_injury_updates = Column(Boolean, default=True)
+    
+    # SMS preferences
+    sms_enabled = Column(Boolean, default=False)
+    sms_phone_number = Column(String, nullable=True)
+    sms_urgent_only = Column(Boolean, default=True)
+    
+    # In-app preferences
+    in_app_enabled = Column(Boolean, default=True)
+    
+    # Timing preferences
+    lineup_reminder_time = Column(Integer, default=2)  # Hours before game day
+    quiet_hours_start = Column(Integer, default=22)  # 24-hour format
+    quiet_hours_end = Column(Integer, default=8)  # 24-hour format
+    
+    created_at = Column(DateTime, nullable=False)
+    updated_at = Column(DateTime, nullable=False)
+    
+    # Relationships
+    user = relationship("User", back_populates="notification_preferences")
+
+class NotificationQueue(Base):
+    """
+    NotificationQueue model representing queued notifications for processing.
+    """
+    __tablename__ = 'notification_queue'
+    
+    id = Column(String, primary_key=True)
+    notification_id = Column(String, ForeignKey('notifications.id'), nullable=False)
+    channel = Column(String, nullable=False)  # email, push, sms
+    status = Column(String, default='pending')  # pending, processing, sent, failed
+    retry_count = Column(Integer, default=0)
+    max_retries = Column(Integer, default=3)
+    error_message = Column(Text, nullable=True)
+    scheduled_at = Column(DateTime, nullable=False)
+    processed_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, nullable=False)
+    updated_at = Column(DateTime, nullable=False)
+    
+    # Relationships
+    notification = relationship("Notification")

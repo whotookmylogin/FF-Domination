@@ -1,0 +1,10 @@
+# Simple requirements that work with Python 3.13
+fastapi
+uvicorn[standard]
+python-multipart
+sqlalchemy
+alembic
+requests
+httpx
+python-dotenv
+beautifulsoup4

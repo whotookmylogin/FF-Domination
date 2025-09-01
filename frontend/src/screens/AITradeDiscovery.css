@@ -28,7 +28,59 @@
   margin: 0;
 }
 
-/* AI Configuration Panel */
+/* View Mode Selector */
+.view-mode-selector {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1.5rem;
+  border-radius: 10px;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(10px);
+}
+
+.view-mode-selector h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #ffd700;
+}
+
+.view-mode-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mode-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.mode-btn.active {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  color: #333;
+  border-color: #ffd700;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+}
+
+.mode-description {
+  text-align: center;
+  opacity: 0.9;
+  font-style: italic;
+}
+
+/* AI Configuration Panel (deprecated) */
 .ai-config-panel {
   background: rgba(255, 255, 255, 0.1);
   padding: 1.5rem;

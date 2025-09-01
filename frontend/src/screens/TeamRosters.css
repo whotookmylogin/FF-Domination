@@ -272,6 +272,13 @@
   line-height: var(--line-height-tight);
 }
 
+.team-owner {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+  font-style: italic;
+}
+
 .team-record {
   font-size: var(--font-size-sm);
   color: var(--text-accent);

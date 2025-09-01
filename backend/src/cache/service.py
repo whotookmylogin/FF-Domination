@@ -1,25 +1,44 @@
-import redis
 import json
 import logging
 from typing import Any, Optional
 from datetime import datetime, timedelta
+import time
+
+try:
+    import redis
+    REDIS_AVAILABLE = True
+except ImportError:
+    REDIS_AVAILABLE = False
+    logging.warning("Redis not available, using in-memory cache")
 
 class CacheService:
     """
-    Redis caching service for Fantasy Football Domination App.
-    Implements caching strategies for performance optimization.
+    Caching service for Fantasy Football Domination App.
+    Uses Redis if available, falls back to in-memory cache.
     """
     
     def __init__(self, host: str = 'localhost', port: int = 6379, db: int = 0):
         """
-        Initialize Redis cache service.
+        Initialize cache service.
         
         Args:
             host (str): Redis host
             port (int): Redis port
             db (int): Redis database number
         """
-        self.redis_client = redis.Redis(host=host, port=port, db=db, decode_responses=True)
+        self.redis_client = None
+        self.memory_cache = {}  # Fallback in-memory cache
+        self.cache_expiry = {}  # Track expiry times for in-memory cache
+        
+        if REDIS_AVAILABLE:
+            try:
+                self.redis_client = redis.Redis(host=host, port=port, db=db, decode_responses=True)
+                # Test connection
+                self.redis_client.ping()
+                logging.info("Connected to Redis cache")
+            except Exception as e:
+                logging.warning(f"Redis connection failed, using in-memory cache: {e}")
+                self.redis_client = None
         
     def set(self, key: str, value: Any, expiration_minutes: int = 60) -> bool:
         """
@@ -37,14 +56,23 @@ class CacheService:
             # Serialize value to JSON string
             serialized_value = json.dumps(value, default=str)
             
-            # Set in Redis with expiration
-            result = self.redis_client.setex(
-                key, 
-                timedelta(minutes=expiration_minutes), 
-                serialized_value
-            )
+            if self.redis_client:
+                # Try Redis first
+                try:
+                    result = self.redis_client.setex(
+                        key, 
+                        timedelta(minutes=expiration_minutes), 
+                        serialized_value
+                    )
+                    return result
+                except Exception as e:
+                    logging.debug(f"Redis set failed, using memory cache: {e}")
             
-            return result
+            # Fallback to in-memory cache
+            self.memory_cache[key] = serialized_value
+            self.cache_expiry[key] = time.time() + (expiration_minutes * 60)
+            return True
+            
         except Exception as e:
             logging.error(f"Failed to set cache key {key}: {str(e)}")
             return False
@@ -60,16 +88,26 @@ class CacheService:
             Any: Cached value or None if not found/expired
         """
         try:
-            # Get from Redis
-            value = self.redis_client.get(key)
+            if self.redis_client:
+                # Try Redis first
+                try:
+                    value = self.redis_client.get(key)
+                    if value is not None:
+                        return json.loads(value)
+                except Exception as e:
+                    logging.debug(f"Redis get failed, checking memory cache: {e}")
             
-            if value is None:
-                return None
-                
-            # Deserialize JSON string
-            deserialized_value = json.loads(value)
+            # Check in-memory cache
+            if key in self.memory_cache:
+                # Check if expired
+                if key in self.cache_expiry and time.time() < self.cache_expiry[key]:
+                    return json.loads(self.memory_cache[key])
+                else:
+                    # Expired, remove from cache
+                    self.memory_cache.pop(key, None)
+                    self.cache_expiry.pop(key, None)
             
-            return deserialized_value
+            return None
         except Exception as e:
             logging.error(f"Failed to get cache key {key}: {str(e)}")
             return None
@@ -85,8 +123,22 @@ class CacheService:
             bool: Success status
         """
         try:
-            result = self.redis_client.delete(key)
-            return result > 0
+            deleted = False
+            
+            if self.redis_client:
+                try:
+                    result = self.redis_client.delete(key)
+                    deleted = result > 0
+                except Exception as e:
+                    logging.debug(f"Redis delete failed: {e}")
+            
+            # Also delete from memory cache
+            if key in self.memory_cache:
+                self.memory_cache.pop(key, None)
+                self.cache_expiry.pop(key, None)
+                deleted = True
+            
+            return deleted
         except Exception as e:
             logging.error(f"Failed to delete cache key {key}: {str(e)}")
             return False

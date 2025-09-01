@@ -5,69 +5,28 @@ import './TradeSuggestions.css';
 const TradeSuggestions = ({ league }) => {
   const [tradeSuggestions, setTradeSuggestions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   useEffect(() => {
-    // In a real implementation, this would fetch data from the trade suggestion engine
     const fetchTradeSuggestions = async () => {
       setLoading(true);
+      setError(null);
       
-      // Mock trade suggestions
-      const mockSuggestions = [
-        {
-          id: 1,
-          playerIn: {
-            name: "Player C",
-            position: "QB",
-            team: "Team X",
-            projectedPoints: 18.2
-          },
-          playerOut: {
-            name: "Player A",
-            position: "RB",
-            team: "Team Y",
-            projectedPoints: 12.5
-          },
-          valueImprovement: 2.1,
-          riskLevel: "medium"
-        },
-        {
-          id: 2,
-          playerIn: {
-            name: "Player F",
-            position: "WR",
-            team: "Team Z",
-            projectedPoints: 11.3
-          },
-          playerOut: {
-            name: "Player E",
-            position: "TE",
-            team: "Team Y",
-            projectedPoints: 8.1
-          },
-          valueImprovement: -1.2,
-          riskLevel: "high"
-        },
-        {
-          id: 3,
-          playerIn: {
-            name: "Player H",
-            position: "DEF",
-            team: "Team W",
-            projectedPoints: 8.5
-          },
-          playerOut: {
-            name: "Player G",
-            position: "K",
-            team: "Team Y",
-            projectedPoints: 7.2
-          },
-          valueImprovement: 0.8,
-          riskLevel: "low"
-        }
-      ];
-      
-      setTradeSuggestions(mockSuggestions);
-      setLoading(false);
+      try {
+        // TODO: Implement real trade suggestions endpoint
+        // const response = await fetch(`http://localhost:8000/trade-suggestions/${league?.id}`);
+        // const data = await response.json();
+        
+        // For now, no mock data - just show empty state
+        setTradeSuggestions([]);
+        setError('Trade suggestions feature coming soon. AI analysis will be available once configured.');
+      } catch (err) {
+        console.error('Error fetching trade suggestions:', err);
+        setTradeSuggestions([]);
+        setError('Unable to load trade suggestions. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
     };
     
     if (league) {
@@ -90,11 +49,45 @@ const TradeSuggestions = ({ league }) => {
         <p>Fairness scores range from 1-10 (10 being perfectly balanced). Win probability delta shows the expected change in your chances of winning the league.</p>
       </div>
       
-      <div className="trade-suggestions-grid">
-        {tradeSuggestions.map(suggestion => (
-          <TradeSuggestionCard key={suggestion.id} suggestion={suggestion} />
-        ))}
-      </div>
+      {error && (
+        <div className="info-banner" style={{
+          backgroundColor: '#e3f2fd',
+          color: '#1565c0',
+          padding: '15px',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px'
+        }}>
+          <span style={{ fontSize: '20px' }}>ℹ️</span>
+          <div>
+            <strong>No Trade Suggestions Available</strong>
+            <div style={{ fontSize: '14px', marginTop: '5px' }}>{error}</div>
+          </div>
+        </div>
+      )}
+      
+      {tradeSuggestions.length === 0 && !error && (
+        <div className="empty-state" style={{
+          textAlign: 'center',
+          padding: '40px',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '8px'
+        }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🤝</div>
+          <h3>No Trade Suggestions Available</h3>
+          <p>Check back later for AI-powered trade recommendations.</p>
+        </div>
+      )}
+      
+      {tradeSuggestions.length > 0 && (
+        <div className="trade-suggestions-grid">
+          {tradeSuggestions.map(suggestion => (
+            <TradeSuggestionCard key={suggestion.id} suggestion={suggestion} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

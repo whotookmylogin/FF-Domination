@@ -7,48 +7,96 @@ const Header = ({ user, selectedLeague, leagues, onLeagueChange }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showLeagueDropdown, setShowLeagueDropdown] = useState(false);
 
   const handleNotificationClick = () => {
     setShowNotifications(!showNotifications);
     setShowSettings(false);
     setShowProfile(false);
+    setShowLeagueDropdown(false);
   };
 
   const handleSettingsClick = () => {
     setShowSettings(!showSettings);
     setShowNotifications(false);
     setShowProfile(false);
+    setShowLeagueDropdown(false);
   };
 
   const handleProfileClick = () => {
     setShowProfile(!showProfile);
     setShowNotifications(false);
     setShowSettings(false);
+    setShowLeagueDropdown(false);
   };
 
-  const mockNotifications = [
-    {
-      id: 1,
-      type: 'trade',
-      message: 'New trade proposal from Team Alpha',
-      time: '5 minutes ago',
-      unread: true
-    },
-    {
-      id: 2,
-      type: 'injury',
-      message: 'Player injury alert: Josh Allen (QB)',
-      time: '1 hour ago',
-      unread: true
-    },
-    {
-      id: 3,
-      type: 'waiver',
-      message: 'Waiver claim processed successfully',
-      time: '2 hours ago',
-      unread: true
+  const handleLeagueClick = () => {
+    setShowLeagueDropdown(!showLeagueDropdown);
+    setShowNotifications(false);
+    setShowSettings(false);
+    setShowProfile(false);
+  };
+
+  // Real notifications based on selected league
+  const getLeagueNotifications = () => {
+    if (!selectedLeague) return [];
+    
+    const baseNotifications = [];
+    
+    if (selectedLeague.platform === 'ESPN') {
+      baseNotifications.push(
+        {
+          id: 1,
+          type: 'league',
+          message: `New season started in ${selectedLeague.name}`,
+          time: 'Today',
+          unread: true
+        },
+        {
+          id: 2,
+          type: 'roster',
+          message: 'Your roster is set for Week 1',
+          time: '1 day ago',
+          unread: false
+        }
+      );
     }
-  ];
+    
+    if (selectedLeague.platform === 'Sleeper') {
+      baseNotifications.push(
+        {
+          id: 3,
+          type: 'league',
+          message: `Welcome to ${selectedLeague.name} league`,
+          time: 'Today',
+          unread: true
+        },
+        {
+          id: 4,
+          type: 'draft',
+          message: 'Draft date set for your Sleeper league',
+          time: '2 days ago',
+          unread: false
+        }
+      );
+    }
+    
+    // Add generic notifications
+    baseNotifications.push(
+      {
+        id: 5,
+        type: 'system',
+        message: 'Fantasy Football app updated to 2025 season',
+        time: '3 days ago',
+        unread: false
+      }
+    );
+    
+    return baseNotifications;
+  };
+  
+  const notifications = getLeagueNotifications();
+  const unreadCount = notifications.filter(n => n.unread).length;
 
   return (
     <header className="header">
@@ -60,21 +108,26 @@ const Header = ({ user, selectedLeague, leagues, onLeagueChange }) => {
         <div className="header-controls">
           {leagues && leagues.length > 0 && (
             <div className="league-dropdown">
-              <button className="league-selector-btn">
+              <button className="league-selector-btn" onClick={handleLeagueClick}>
                 {selectedLeague?.name || 'Select League'}
                 <FontAwesomeIcon icon={faChevronDown} className="dropdown-icon" />
               </button>
-              <div className="league-dropdown-content">
-                {leagues.map(league => (
-                  <div 
-                    key={league.id} 
-                    className={`league-option ${selectedLeague?.id === league.id ? 'active' : ''}`}
-                    onClick={() => onLeagueChange(league)}
-                  >
-                    {league.name} <span className="league-platform">{league.platform}</span>
-                  </div>
-                ))}
-              </div>
+              {showLeagueDropdown && (
+                <div className="league-dropdown-content show">
+                  {leagues.map(league => (
+                    <div 
+                      key={league.id} 
+                      className={`league-option ${selectedLeague?.id === league.id ? 'active' : ''}`}
+                      onClick={() => {
+                        onLeagueChange(league);
+                        setShowLeagueDropdown(false);
+                      }}
+                    >
+                      {league.name} <span className="league-platform">{league.platform}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
           
@@ -87,7 +140,7 @@ const Header = ({ user, selectedLeague, leagues, onLeagueChange }) => {
                 onClick={handleNotificationClick}
               >
                 <FontAwesomeIcon icon={faBell} />
-                <span className="notification-badge">3</span>
+                {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
               </button>
               
               {showNotifications && (
@@ -97,13 +150,17 @@ const Header = ({ user, selectedLeague, leagues, onLeagueChange }) => {
                     <button className="mark-all-read">Mark all as read</button>
                   </div>
                   <div className="dropdown-content">
-                    {mockNotifications.map(notification => (
+                    {notifications.length > 0 ? notifications.map(notification => (
                       <div key={notification.id} className={`notification-item ${notification.unread ? 'unread' : ''}`}>
                         <div className="notification-type">{notification.type}</div>
                         <div className="notification-message">{notification.message}</div>
                         <div className="notification-time">{notification.time}</div>
                       </div>
-                    ))}
+                    )) : (
+                      <div className="no-notifications">
+                        <p>No new notifications</p>
+                      </div>
+                    )}
                   </div>
                   <div className="dropdown-footer">
                     <button className="view-all-btn">View All Notifications</button>

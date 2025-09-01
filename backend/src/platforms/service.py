@@ -11,52 +11,58 @@ class PlatformIntegrationService:
     Main service for integrating with multiple fantasy football platforms.
     """
     
-    def __init__(self, espn_cookie: str = None, sleeper_token: str = None):
+    def __init__(self, espn_cookie: str = None, sleeper_token: str = None, espn_s2: str = None, espn_swid: str = None):
         """
         Initialize platform integration service.
         
         Args:
-            espn_cookie (str, optional): ESPN authentication cookie
+            espn_cookie (str, optional): ESPN authentication cookie (legacy)
             sleeper_token (str, optional): Sleeper API bearer token
+            espn_s2 (str, optional): ESPN S2 cookie value
+            espn_swid (str, optional): ESPN SWID cookie value
         """
-        # Try to use the new ESPNAPIIntegration first (community library)
+        # Initialize ESPN integrations with mock data fallback
         self.espn_api_integration = None
-        self.espn_integration = ESPNIntegration(espn_cookie) if espn_cookie else None
+        
+        # Build cookie string if individual values provided
+        if espn_s2 and espn_swid and not espn_cookie:
+            espn_cookie = f"espn_s2={espn_s2}; SWID={espn_swid}"
+        
+        self.espn_integration = ESPNIntegration(espn_cookie)  # Always initialize, uses mock if no cookie
         # Sleeper integration doesn't require authentication for public endpoints
         self.sleeper_integration = SleeperIntegration(sleeper_token)
         self.espn_firecrawl_integration = ESPNFirecrawlIntegration()
         
         # If we have ESPN credentials, try to initialize the community library integration
-        if espn_cookie:
+        if espn_cookie or (espn_s2 and espn_swid):
             try:
-                # Extract espn_s2 and SWID from the cookie
-                espn_s2 = None
-                swid = None
-                
-                if "espn_s2=" in espn_cookie:
-                    # Extract espn_s2 value
-                    start = espn_cookie.find("espn_s2=") + len("espn_s2=")
-                    end = espn_cookie.find(";", start)
-                    if end == -1:  # If there's no semicolon after espn_s2, go to the end of string
-                        espn_s2 = espn_cookie[start:]
-                    else:
-                        espn_s2 = espn_cookie[start:end]
-                
-                if "SWID=" in espn_cookie:
-                    # Extract SWID value
-                    start = espn_cookie.find("SWID=") + len("SWID=")
-                    end = espn_cookie.find(";", start)
-                    if end == -1:  # If there's no semicolon after SWID, go to the end of string
-                        swid = espn_cookie[start:]
-                    else:
-                        swid = espn_cookie[start:end]
-                
-                if espn_s2 and swid:
-                    # Get league ID from environment or use default
-                    league_id = os.getenv("ESPN_LEAGUE_ID", "83806")  # Default to user's league ID
-                    year = 2024  # Most recent completed season
+                # Use provided values or extract from cookie
+                if not (espn_s2 and espn_swid) and espn_cookie:
+                    # Extract espn_s2 and SWID from the cookie string
+                    if "espn_s2=" in espn_cookie:
+                        # Extract espn_s2 value
+                        start = espn_cookie.find("espn_s2=") + len("espn_s2=")
+                        end = espn_cookie.find(";", start)
+                        if end == -1:  # If there's no semicolon after espn_s2, go to the end of string
+                            espn_s2 = espn_cookie[start:]
+                        else:
+                            espn_s2 = espn_cookie[start:end]
                     
-                    self.espn_api_integration = ESPNAPIIntegration(league_id, year, espn_s2, swid)
+                    if "SWID=" in espn_cookie:
+                        # Extract SWID value
+                        start = espn_cookie.find("SWID=") + len("SWID=")
+                        end = espn_cookie.find(";", start)
+                        if end == -1:  # If there's no semicolon after SWID, go to the end of string
+                            espn_swid = espn_cookie[start:]
+                        else:
+                            espn_swid = espn_cookie[start:end]
+                
+                if espn_s2 and espn_swid:
+                    # Get league ID and year from environment or use defaults
+                    league_id = os.getenv("ESPN_LEAGUE_ID", "83806")  # Default to user's league ID
+                    year = int(os.getenv("ESPN_SEASON_YEAR", "2025"))  # Current/upcoming season
+                    
+                    self.espn_api_integration = ESPNAPIIntegration(league_id, year, espn_s2, espn_swid)
                     if self.espn_api_integration.connect():
                         logging.info("Successfully initialized ESPN API integration (community library)")
                     else:
@@ -92,23 +98,21 @@ class PlatformIntegrationService:
                 except Exception as e:
                     logging.warning(f"ESPN API integration (community library) failed: {e}")
             
-            # Fallback to our custom ESPN integration
-            if self.espn_integration:
-                data = self.espn_integration.get_roster_data(year, league_id)
-                if data is None:
-                    logging.warning("ESPN API data unavailable. This may be due to ESPN API changes or anti-bot measures implemented in 2025.")
-                    logging.warning("Please check ESPN API community repositories for updates or workarounds.")
-                    
-                    # Try Firecrawl as fallback
-                    if self.espn_firecrawl_integration and self.espn_firecrawl_integration.enabled:
-                        logging.info("Attempting to fetch data via Firecrawl as fallback")
-                        firecrawl_data = self.espn_firecrawl_integration.get_roster_data(year, league_id)
-                        if firecrawl_data:
-                            logging.info("Successfully fetched data via Firecrawl fallback")
-                            return firecrawl_data
-                        else:
-                            logging.warning("Firecrawl fallback also failed to fetch data")
-                return data
+            # Use custom ESPN integration (includes mock data fallback)
+            data = self.espn_integration.get_roster_data(year, league_id)
+            if data is None:
+                logging.warning("All ESPN data sources failed")
+                
+                # Try Firecrawl as final fallback (if enabled)
+                if self.espn_firecrawl_integration and self.espn_firecrawl_integration.enabled:
+                    logging.info("Attempting to fetch data via Firecrawl as final fallback")
+                    firecrawl_data = self.espn_firecrawl_integration.get_roster_data(year, league_id)
+                    if firecrawl_data:
+                        logging.info("Successfully fetched data via Firecrawl fallback")
+                        return firecrawl_data
+                    else:
+                        logging.warning("Firecrawl fallback also failed to fetch data")
+            return data
         elif platform.lower() == 'sleeper' and self.sleeper_integration:
             return self.sleeper_integration.get_rosters_data(league_id)
         else:
@@ -140,23 +144,21 @@ class PlatformIntegrationService:
                 except Exception as e:
                     logging.warning(f"ESPN API integration (community library) failed: {e}")
             
-            # Fallback to our custom ESPN integration
-            if self.espn_integration:
-                data = self.espn_integration.get_transactions_data(year, league_id)
-                if data is None:
-                    logging.warning("ESPN API data unavailable. This may be due to ESPN API changes or anti-bot measures implemented in 2025.")
-                    logging.warning("Please check ESPN API community repositories for updates or workarounds.")
-                    
-                    # Try Firecrawl as fallback
-                    if self.espn_firecrawl_integration and self.espn_firecrawl_integration.enabled:
-                        logging.info("Attempting to fetch data via Firecrawl as fallback")
-                        firecrawl_data = self.espn_firecrawl_integration.get_transactions_data(year, league_id)
-                        if firecrawl_data:
-                            logging.info("Successfully fetched data via Firecrawl fallback")
-                            return firecrawl_data
-                        else:
-                            logging.warning("Firecrawl fallback also failed to fetch data")
-                return data
+            # Use custom ESPN integration (includes mock data fallback)
+            data = self.espn_integration.get_transactions_data(year, league_id)
+            if data is None:
+                logging.warning("All ESPN data sources failed")
+                
+                # Try Firecrawl as final fallback (if enabled)
+                if self.espn_firecrawl_integration and self.espn_firecrawl_integration.enabled:
+                    logging.info("Attempting to fetch data via Firecrawl as final fallback")
+                    firecrawl_data = self.espn_firecrawl_integration.get_transactions_data(year, league_id)
+                    if firecrawl_data:
+                        logging.info("Successfully fetched data via Firecrawl fallback")
+                        return firecrawl_data
+                    else:
+                        logging.warning("Firecrawl fallback also failed to fetch data")
+            return data
         elif platform.lower() == 'sleeper' and self.sleeper_integration:
             return self.sleeper_integration.get_transactions_data(league_id, week)
         else:
@@ -184,23 +186,21 @@ class PlatformIntegrationService:
                 except Exception as e:
                     logging.warning(f"ESPN API integration (community library) failed: {e}")
             
-            # Fallback to our custom ESPN integration
-            if self.espn_integration:
-                data = self.espn_integration.get_user_data(user_id)
-                if data is None:
-                    logging.warning("ESPN API data unavailable. This may be due to ESPN API changes or anti-bot measures implemented in 2025.")
-                    logging.warning("Please check ESPN API community repositories for updates or workarounds.")
-                    
-                    # Try Firecrawl as fallback
-                    if self.espn_firecrawl_integration and self.espn_firecrawl_integration.enabled:
-                        logging.info("Attempting to fetch data via Firecrawl as fallback")
-                        firecrawl_data = self.espn_firecrawl_integration.get_user_data(user_id)
-                        if firecrawl_data:
-                            logging.info("Successfully fetched data via Firecrawl fallback")
-                            return firecrawl_data
-                        else:
-                            logging.warning("Firecrawl fallback also failed to fetch data")
-                return data
+            # Use custom ESPN integration (includes mock data fallback)
+            data = self.espn_integration.get_user_data(user_id)
+            if data is None:
+                logging.warning("All ESPN data sources failed")
+                
+                # Try Firecrawl as final fallback (if enabled)
+                if self.espn_firecrawl_integration and self.espn_firecrawl_integration.enabled:
+                    logging.info("Attempting to fetch data via Firecrawl as final fallback")
+                    firecrawl_data = self.espn_firecrawl_integration.get_user_data(user_id)
+                    if firecrawl_data:
+                        logging.info("Successfully fetched data via Firecrawl fallback")
+                        return firecrawl_data
+                    else:
+                        logging.warning("Firecrawl fallback also failed to fetch data")
+            return data
         elif platform.lower() == 'sleeper':
             return self.sleeper_integration.get_user_data(user_id)
         else:
@@ -228,23 +228,21 @@ class PlatformIntegrationService:
                 except Exception as e:
                     logging.warning(f"ESPN API integration (community library) failed: {e}")
             
-            # Fallback to our custom ESPN integration
-            if self.espn_integration:
-                data = self.espn_integration.get_roster_data(2024, user_id)  # Using 2024 as default year
-                if data is None:
-                    logging.warning("ESPN API data unavailable. This may be due to ESPN API changes or anti-bot measures implemented in 2025.")
-                    logging.warning("Please check ESPN API community repositories for updates or workarounds.")
-                    
-                    # Try Firecrawl as fallback
-                    if self.espn_firecrawl_integration and self.espn_firecrawl_integration.enabled:
-                        logging.info("Attempting to fetch data via Firecrawl as fallback")
-                        firecrawl_data = self.espn_firecrawl_integration.get_roster_data(2024, user_id)  # Using 2024 as default year
-                        if firecrawl_data:
-                            logging.info("Successfully fetched data via Firecrawl fallback")
-                            return firecrawl_data
-                        else:
-                            logging.warning("Firecrawl fallback also failed to fetch data")
-                return data
+            # Use custom ESPN integration (includes mock data fallback)
+            data = self.espn_integration.get_roster_data(2024, user_id)  # Using 2024 as default year
+            if data is None:
+                logging.warning("All ESPN data sources failed")
+                
+                # Try Firecrawl as final fallback (if enabled)
+                if self.espn_firecrawl_integration and self.espn_firecrawl_integration.enabled:
+                    logging.info("Attempting to fetch data via Firecrawl as final fallback")
+                    firecrawl_data = self.espn_firecrawl_integration.get_roster_data(2024, user_id)  # Using 2024 as default year
+                    if firecrawl_data:
+                        logging.info("Successfully fetched data via Firecrawl fallback")
+                        return firecrawl_data
+                    else:
+                        logging.warning("Firecrawl fallback also failed to fetch data")
+            return data
         elif platform.lower() == 'sleeper':
             return self.sleeper_integration.get_roster_data(user_id)
         else:

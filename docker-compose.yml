@@ -1,0 +1,324 @@
+# Fantasy Football Domination App - Docker Compose Configuration
+# ================================================================
+# This docker-compose file provides a complete development environment
+# with all services needed for the Fantasy Football application.
+
+version: '3.8'
+
+services:
+  # =====================================================
+  # Database Services
+  # =====================================================
+  
+  # Redis - Caching and background task queue
+  redis:
+    image: redis:7-alpine
+    container_name: ff_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - ff_network
+
+  # PostgreSQL - Production database (optional for development)
+  postgres:
+    image: postgres:15-alpine
+    container_name: ff_postgres
+    environment:
+      POSTGRES_DB: fantasy_football
+      POSTGRES_USER: ff_user
+      POSTGRES_PASSWORD: ff_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ff_user -d fantasy_football"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - ff_network
+
+  # =====================================================
+  # Application Services
+  # =====================================================
+  
+  # Backend API Server
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ff_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://ff_user:ff_password@postgres:5432/fantasy_football
+      - REDIS_URL=redis://redis:6379
+      - PYTHONPATH=/app/src
+      - ENV=development
+    volumes:
+      - ./backend:/app
+      - ./backend/logs:/app/logs
+      - ./backend/.env:/app/.env:ro
+    depends_on:
+      - redis
+      - postgres
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - ff_network
+    command: >
+      sh -c "
+        # Wait for database
+        until pg_isready -h postgres -p 5432 -U ff_user; do
+          echo 'Waiting for PostgreSQL...'
+          sleep 2
+        done
+        
+        # Run migrations
+        alembic upgrade head
+        
+        # Start the server
+        uvicorn main:app --host 0.0.0.0 --port 8000 --reload --log-level info
+      "
+
+  # Frontend React Development Server
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: ff_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_BASE_URL=http://localhost:8000
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    networks:
+      - ff_network
+    command: npm start
+
+  # =====================================================
+  # Background Workers
+  # =====================================================
+  
+  # Celery Worker for background tasks
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ff_celery_worker
+    environment:
+      - DATABASE_URL=postgresql://ff_user:ff_password@postgres:5432/fantasy_football
+      - REDIS_URL=redis://redis:6379
+      - PYTHONPATH=/app/src
+      - ENV=development
+    volumes:
+      - ./backend:/app
+      - ./backend/logs:/app/logs
+      - ./backend/.env:/app/.env:ro
+    depends_on:
+      - redis
+      - postgres
+      - backend
+    restart: unless-stopped
+    networks:
+      - ff_network
+    command: celery -A src.news.scheduler worker --loglevel=info --concurrency=2
+
+  # Celery Beat for scheduled tasks
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ff_celery_beat
+    environment:
+      - DATABASE_URL=postgresql://ff_user:ff_password@postgres:5432/fantasy_football
+      - REDIS_URL=redis://redis:6379
+      - PYTHONPATH=/app/src
+      - ENV=development
+    volumes:
+      - ./backend:/app
+      - ./backend/logs:/app/logs
+      - ./backend/.env:/app/.env:ro
+      - celery_beat_data:/app/celerybeat-schedule
+    depends_on:
+      - redis
+      - postgres
+      - backend
+    restart: unless-stopped
+    networks:
+      - ff_network
+    command: celery -A src.news.scheduler beat --loglevel=info
+
+  # News Aggregation Worker
+  news_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ff_news_worker
+    environment:
+      - DATABASE_URL=postgresql://ff_user:ff_password@postgres:5432/fantasy_football
+      - REDIS_URL=redis://redis:6379
+      - PYTHONPATH=/app/src
+      - ENV=development
+    volumes:
+      - ./backend:/app
+      - ./backend/logs:/app/logs
+      - ./backend/.env:/app/.env:ro
+    depends_on:
+      - redis
+      - postgres
+      - backend
+    restart: unless-stopped
+    networks:
+      - ff_network
+    command: python start_news_worker.py
+
+  # =====================================================
+  # Development Tools
+  # =====================================================
+  
+  # Nginx Reverse Proxy (optional)
+  nginx:
+    image: nginx:alpine
+    container_name: ff_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    networks:
+      - ff_network
+    profiles:
+      - production
+
+  # Redis Commander - Redis web UI
+  redis_commander:
+    image: rediscommander/redis-commander:latest
+    container_name: ff_redis_commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - ff_network
+    profiles:
+      - debug
+
+  # pgAdmin - PostgreSQL web UI
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: ff_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@fantasyapp.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - ff_network
+    profiles:
+      - debug
+
+  # Flower - Celery monitoring
+  flower:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ff_flower
+    environment:
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+      - celery_worker
+    restart: unless-stopped
+    networks:
+      - ff_network
+    profiles:
+      - debug
+    command: celery -A src.news.scheduler flower --port=5555
+
+# =====================================================
+# Networks and Volumes
+# =====================================================
+
+networks:
+  ff_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+  celery_beat_data:
+    driver: local
+
+# =====================================================
+# Docker Compose Profiles
+# =====================================================
+# 
+# Usage Examples:
+# 
+# Basic development:
+#   docker-compose up
+# 
+# With debugging tools:
+#   docker-compose --profile debug up
+# 
+# Production mode:
+#   docker-compose --profile production up
+# 
+# Only infrastructure (Redis, PostgreSQL):
+#   docker-compose up redis postgres
+# 
+# Scale workers:
+#   docker-compose up --scale celery_worker=3
+# 
+# Build and start fresh:
+#   docker-compose build --no-cache
+#   docker-compose up --force-recreate
