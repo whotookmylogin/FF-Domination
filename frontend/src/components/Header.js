@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faBell, faCog, faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faBell, faCog, faChevronDown, faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
 import './Header.css';
 
-const Header = ({ user, selectedLeague, leagues, onLeagueChange }) => {
+const Header = ({ user, selectedLeague, leagues, onLeagueChange, onMenuToggle, isMobileMenuOpen }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -53,6 +53,9 @@ const Header = ({ user, selectedLeague, leagues, onLeagueChange }) => {
   return (
     <header className="header">
       <div className="header-content">
+        <button className="mobile-menu-toggle" onClick={onMenuToggle}>
+          <FontAwesomeIcon icon={isMobileMenuOpen ? faTimes : faBars} />
+        </button>
         <div className="header-brand">
           <h1>Fantasy Football Domination</h1>
         </div>

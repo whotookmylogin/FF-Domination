@@ -1,0 +1,390 @@
+/* ===============================================
+   MOBILE-FIRST RESPONSIVE STYLES
+   Optimized for iPhone and Android devices
+   =============================================== */
+
+/* === MOBILE MENU BUTTON === */
+.mobile-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: var(--font-size-xl);
+  padding: var(--padding-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  margin-right: var(--space-3);
+}
+
+.mobile-menu-toggle:hover {
+  background: var(--bg-hover);
+  border-radius: var(--border-radius-sm);
+}
+
+.sidebar-close-btn {
+  display: none;
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  z-index: 1001;
+}
+
+.sidebar-close-btn:hover {
+  background: var(--bg-hover);
+}
+
+/* === MOBILE OVERLAY === */
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 989;
+  backdrop-filter: blur(2px);
+}
+
+/* === MOBILE BREAKPOINTS === */
+@media (max-width: 768px) {
+  /* Show mobile menu controls */
+  .mobile-menu-toggle {
+    display: block;
+  }
+  
+  .sidebar-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Header adjustments */
+  .header {
+    height: 60px;
+    padding: 0 var(--space-3);
+  }
+  
+  .header-content {
+    padding: 0 var(--space-2);
+  }
+  
+  .header-brand h1 {
+    font-size: var(--font-size-base);
+    display: none; /* Hide on smallest screens */
+  }
+  
+  /* Show abbreviated brand on mobile */
+  .header-brand::after {
+    content: "FF Domination";
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-brand);
+  }
+  
+  /* Sidebar mobile transformation */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 280px;
+    height: 100vh;
+    z-index: 999;
+    transition: transform var(--transition-normal);
+    box-shadow: var(--shadow-xl);
+  }
+  
+  .sidebar.sidebar-open {
+    transform: translateX(280px);
+  }
+  
+  .mobile-overlay {
+    display: block;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-normal);
+  }
+  
+  .menu-open .mobile-overlay {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  
+  /* Content adjustments */
+  .app-content {
+    margin-left: 0;
+    margin-top: 60px;
+    padding: var(--space-3);
+    min-height: calc(100vh - 60px);
+  }
+  
+  /* League dropdown mobile */
+  .league-dropdown {
+    min-width: 120px;
+  }
+  
+  .league-selector-btn {
+    font-size: var(--font-size-xs);
+    padding: var(--space-2) var(--space-3);
+  }
+  
+  /* Hide user name on mobile */
+  .user-name {
+    display: none;
+  }
+  
+  /* Header actions mobile spacing */
+  .header-actions {
+    gap: var(--space-2);
+  }
+  
+  .header-icon-btn {
+    padding: var(--space-2);
+  }
+  
+  /* Dropdown menus mobile */
+  .dropdown-menu {
+    width: 280px;
+    right: -10px;
+  }
+  
+  /* Navigation sections better spacing */
+  .nav-section-header {
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-secondary);
+    margin-top: var(--space-2);
+    border-left: 3px solid var(--primary-brand);
+  }
+  
+  .nav-item a {
+    padding: var(--space-4) var(--space-5);
+    font-size: var(--font-size-base);
+  }
+  
+  /* Touch-friendly tap targets */
+  .nav-item a,
+  .league-item,
+  .btn,
+  button {
+    min-height: 44px; /* iOS recommendation */
+  }
+}
+
+/* === SMALL MOBILE (iPhone SE, etc) === */
+@media (max-width: 375px) {
+  .header-brand::after {
+    content: "FFD";
+    font-size: var(--font-size-lg);
+  }
+  
+  .league-dropdown {
+    display: none; /* Move to sidebar on very small screens */
+  }
+  
+  .sidebar {
+    width: 100%;
+    left: -100%;
+  }
+  
+  .sidebar.sidebar-open {
+    transform: translateX(100%);
+  }
+  
+  .app-content {
+    padding: var(--space-2);
+  }
+}
+
+/* === CARD LAYOUTS FOR MOBILE === */
+@media (max-width: 768px) {
+  /* Stack all cards vertically */
+  .dashboard-grid,
+  .sleeper-grid,
+  .players-grid,
+  .grid-cols-2,
+  .grid-cols-3,
+  .grid-cols-4 {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-3);
+  }
+  
+  /* Card mobile optimizations */
+  .player-card,
+  .news-card,
+  .trade-suggestion-card,
+  .waiver-claim-card,
+  .team-strength-card,
+  .advanced-analytics-card {
+    padding: var(--padding-md);
+    margin-bottom: var(--space-3);
+  }
+  
+  /* Player card mobile layout */
+  .player-header {
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .player-image {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .player-stats {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  
+  .stat-item {
+    min-width: 30%;
+  }
+  
+  /* Trade card mobile layout */
+  .trade-players {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  
+  .trade-arrow {
+    transform: rotate(90deg);
+    margin: var(--space-3) 0;
+  }
+  
+  /* News card mobile */
+  .news-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+  
+  .news-title {
+    font-size: var(--font-size-base);
+  }
+  
+  /* Team strength mobile */
+  .strength-details {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+  
+  .strength-value {
+    font-size: var(--font-size-3xl);
+  }
+  
+  /* Table responsive */
+  .data-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table {
+    min-width: 500px;
+  }
+}
+
+/* === TOUCH INTERACTIONS === */
+@media (hover: none) and (pointer: coarse) {
+  /* Remove hover effects on touch devices */
+  .card:hover,
+  .btn:hover,
+  .nav-item a:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  /* Add active states for touch */
+  .card:active,
+  .btn:active,
+  .nav-item a:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+  
+  /* Larger touch targets */
+  .btn {
+    padding: var(--padding-md) var(--padding-lg);
+    font-size: var(--font-size-base);
+  }
+  
+  /* Disable text selection on buttons */
+  .btn,
+  button,
+  .nav-item a {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* === LANDSCAPE MOBILE === */
+@media (max-width: 768px) and (orientation: landscape) {
+  .header {
+    height: 50px;
+  }
+  
+  .app-content {
+    margin-top: 50px;
+    padding: var(--space-2);
+  }
+  
+  .sidebar {
+    width: 240px;
+    left: -240px;
+  }
+  
+  .sidebar.sidebar-open {
+    transform: translateX(240px);
+  }
+  
+  /* Reduce vertical spacing in landscape */
+  .card {
+    padding: var(--padding-sm);
+  }
+  
+  .nav-item a {
+    padding: var(--space-3) var(--space-4);
+  }
+}
+
+/* === TABLET ADJUSTMENTS === */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar {
+    width: 220px;
+  }
+  
+  .app-content {
+    margin-left: 220px;
+  }
+  
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* === SAFE AREAS FOR NOTCHED DEVICES === */
+@supports (padding: env(safe-area-inset-top)) {
+  .header {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .sidebar {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .app-content {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

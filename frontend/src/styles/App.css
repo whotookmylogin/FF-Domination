@@ -5,6 +5,7 @@
 
 /* Import our unified design system */
 @import './DesignSystem.css';
+@import './Mobile.css';
 
 /* ==================== GLOBAL OVERRIDES ==================== */
 body {
