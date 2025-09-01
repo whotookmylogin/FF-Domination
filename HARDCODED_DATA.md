@@ -73,8 +73,8 @@ This document lists all hardcoded user-specific data in the Fantasy Football Dom
 - **Data**:
   ```javascript
   const [aiConfig, setAiConfig] = useState({
-    openai_key: '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',
-    openrouter_key: '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',
+    openai_key: 'YOUR_OPENAI_KEY_HERE',  // Replace with actual key
+    openrouter_key: 'YOUR_OPENROUTER_KEY_HERE',  // Replace with actual key
     use_ai: true
   });
   ```
@@ -105,8 +105,8 @@ This document lists all hardcoded user-specific data in the Fantasy Football Dom
 - **Location**: `/backend/.env`
 - **Data**:
   ```
-  OPENAI_API_KEY=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
-  OPENROUTER_API_KEY=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
+  OPENAI_API_KEY=YOUR_OPENAI_KEY_HERE
+  OPENROUTER_API_KEY=YOUR_OPENROUTER_KEY_HERE
   ```
 
 ## Important Notes

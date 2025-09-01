@@ -27,10 +27,10 @@ const ExpertDraftTool = ({ league }) => {
     }
   });
 
-  // AI configuration - Hardcoded API keys for user
+  // AI configuration - API keys should be provided by backend
   const [aiConfig, setAiConfig] = useState({
-    openai_key: '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',
-    openrouter_key: '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',
+    openai_key: '',  // Will be populated from backend/environment
+    openrouter_key: '',  // Will be populated from backend/environment
     use_ai: true
   });
 
