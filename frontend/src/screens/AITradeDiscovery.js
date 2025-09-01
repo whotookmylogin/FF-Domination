@@ -337,7 +337,8 @@ const AITradeDiscovery = ({ league }) => {
                     backgroundColor: '#f8f9fa',
                     padding: '15px',
                     borderRadius: '6px',
-                    marginTop: '15px'
+                    marginTop: '15px',
+                    color: '#333'  // Fix white text on light background
                   }}>
                     {trade.bye_week_impact && (
                       <div className="bye-week-section" style={{ marginBottom: '10px' }}>
@@ -407,7 +408,8 @@ const AITradeDiscovery = ({ league }) => {
                     padding: '15px',
                     borderRadius: '8px',
                     marginTop: '15px',
-                    borderLeft: '4px solid #2196F3'
+                    borderLeft: '4px solid #2196F3',
+                    color: '#333'  // Fix white text on light background
                   }}>
                     <h4 style={{ marginTop: 0, marginBottom: '10px', color: '#1976D2' }}>
                       🧠 AI Expert Analysis for Trashy McTrash-Face:

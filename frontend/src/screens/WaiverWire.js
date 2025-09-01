@@ -204,7 +204,8 @@ const WaiverWire = ({ league }) => {
           border: '1px solid #4caf50',
           borderRadius: '8px',
           padding: '20px',
-          marginBottom: '20px'
+          marginBottom: '20px',
+          color: '#333'  // Fix white text on light background
         }}>
           <h3 style={{ marginTop: 0, color: '#2e7d32' }}>🎯 Top Personalized Waiver Recommendations</h3>
           <div className="recommendations-grid" style={{
@@ -219,10 +220,11 @@ const WaiverWire = ({ league }) => {
                 padding: '15px',
                 borderRadius: '6px',
                 border: rec.priority === 'critical' ? '2px solid #dc3545' : 
-                        rec.priority === 'high' ? '2px solid #ffc107' : '1px solid #dee2e6'
+                        rec.priority === 'high' ? '2px solid #ffc107' : '1px solid #dee2e6',
+                color: '#333'  // Fix white text on white background
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h4 style={{ margin: 0 }}>{rec.player_name}</h4>
+                  <h4 style={{ margin: 0, color: '#333' }}>{rec.player_name}</h4>
                   <span style={{
                     backgroundColor: rec.priority === 'critical' ? '#dc3545' : 
                                     rec.priority === 'high' ? '#ffc107' : 
@@ -239,13 +241,14 @@ const WaiverWire = ({ league }) => {
                 <div style={{ fontSize: '0.9rem', color: '#6c757d', marginTop: '5px' }}>
                   {rec.position} • {rec.type.replace('_', ' ')}
                 </div>
-                <p style={{ marginTop: '10px', marginBottom: '10px' }}>{rec.reasoning}</p>
+                <p style={{ marginTop: '10px', marginBottom: '10px', color: '#333' }}>{rec.reasoning}</p>
                 {rec.drop_candidate && (
                   <div style={{
                     backgroundColor: '#fff3cd',
                     padding: '8px',
                     borderRadius: '4px',
-                    fontSize: '0.9rem'
+                    fontSize: '0.9rem',
+                    color: '#856404'  // Amber text for drop warning
                   }}>
                     💱 Drop: {rec.drop_candidate.name} ({rec.drop_candidate.position})
                   </div>
@@ -284,7 +287,8 @@ const WaiverWire = ({ league }) => {
             padding: '40px',
             backgroundColor: '#f8f9fa',
             borderRadius: '12px',
-            marginTop: '20px'
+            marginTop: '20px',
+            color: '#333'  // Fix white text on light background
           }}>
             <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🏃</div>
             <h3>No Waiver Wire Players Available</h3>

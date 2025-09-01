@@ -159,6 +159,9 @@ class EnhancedWaiverAnalyzer:
         
         for player in roster:
             pos = player.get("position")
+            # Handle D/ST as DEF for ESPN compatibility
+            if pos == "D/ST":
+                pos = "DEF"
             if pos in position_counts:
                 position_counts[pos].append(player)
         
@@ -310,9 +313,13 @@ class EnhancedWaiverAnalyzer:
         position = player.get("position")
         player_points = player.get("projected_points", 0)
         
-        # Find comparable players on roster
+        # Find comparable players on roster (handle D/ST as DEF)
+        compare_position = "DEF" if position == "D/ST" else position
         roster_players_at_position = [
-            p for p in my_roster if p.get("position") == position
+            p for p in my_roster 
+            if (p.get("position") == position or 
+                (position == "D/ST" and p.get("position") == "DEF") or
+                (position == "DEF" and p.get("position") == "D/ST"))
         ]
         
         # Check if this fills an immediate need
@@ -548,10 +555,12 @@ class EnhancedWaiverAnalyzer:
     # Platform-specific data fetching methods
     async def _get_espn_roster(self, league_id: str, team_id: str) -> Dict[str, Any]:
         """Fetch ESPN roster data"""
+        print(f"DEBUG: Fetching roster for team_id={team_id}, league_id={league_id}")
         try:
             if self.platform_service:
                 # Get roster data from platform service
                 roster_data = self.platform_service.get_roster_data("espn", team_id)
+                print(f"DEBUG: Got roster_data: {roster_data}")
                 if roster_data and roster_data.get('status') == 'success':
                     # Extract the actual roster from the response
                     data = roster_data.get('data', {})
@@ -560,27 +569,33 @@ class EnhancedWaiverAnalyzer:
                     else:
                         players = data if isinstance(data, list) else []
                     
+                    print(f"DEBUG: Extracted {len(players) if isinstance(players, list) else 0} players")
                     # Return formatted roster
                     return {"players": players if isinstance(players, list) else []}
+                else:
+                    print(f"DEBUG: Roster fetch failed or returned non-success status")
                     
         except Exception as e:
             print(f"Error fetching ESPN roster: {e}")
         
         # Return mock roster for Team 7 (Trashy McTrash-Face)
+        print(f"DEBUG: Using mock roster for team {team_id}")
         if team_id == "7":
-            return {
+            mock_roster = {
                 "players": [
-                    {"name": "Jalen Hurts", "position": "QB", "team": "PHI", "projected_points": 22.5},
+                    {"name": "Josh Allen", "position": "QB", "team": "BUF", "projected_points": 22.5},
                     {"name": "Christian McCaffrey", "position": "RB", "team": "SF", "projected_points": 18.2},
-                    {"name": "Bijan Robinson", "position": "RB", "team": "ATL", "projected_points": 15.8},
-                    {"name": "CeeDee Lamb", "position": "WR", "team": "DAL", "projected_points": 16.3},
-                    {"name": "A.J. Brown", "position": "WR", "team": "PHI", "projected_points": 14.7},
-                    {"name": "Stefon Diggs", "position": "WR", "team": "BUF", "projected_points": 13.9},
+                    {"name": "Derrick Henry", "position": "RB", "team": "BAL", "projected_points": 15.8},
+                    {"name": "Tyreek Hill", "position": "WR", "team": "MIA", "projected_points": 16.3},
+                    {"name": "Cooper Kupp", "position": "WR", "team": "LAR", "projected_points": 14.7},
+                    {"name": "Stefon Diggs", "position": "WR", "team": "HOU", "projected_points": 13.9},
                     {"name": "Travis Kelce", "position": "TE", "team": "KC", "projected_points": 12.4},
                     {"name": "Harrison Butker", "position": "K", "team": "KC", "projected_points": 8.5},
-                    {"name": "San Francisco 49ers", "position": "DEF", "team": "SF", "projected_points": 9.2}
+                    {"name": "Bills D/ST", "position": "D/ST", "team": "BUF", "projected_points": 9.2}
                 ]
             }
+            print(f"DEBUG: Returning mock roster with {len(mock_roster['players'])} players")
+            return mock_roster
         
         return {"players": []}
     
