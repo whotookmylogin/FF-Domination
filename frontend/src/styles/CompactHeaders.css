@@ -1,0 +1,188 @@
+/* ===============================================
+   COMPACT PAGE HEADERS
+   Optimized for minimal vertical space usage
+   =============================================== */
+
+/* === STANDARD COMPACT HEADER === */
+.page-header,
+.trade-discovery-header,
+.dashboard-header,
+.roster-header,
+.team-analysis-header,
+.news-header,
+.waiver-header,
+.draft-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  min-height: 48px;
+  max-height: 60px;
+}
+
+/* Header title styling */
+.page-header h1,
+.trade-discovery-header h1,
+.dashboard-header h1,
+.roster-header h1,
+.team-analysis-header h1,
+.news-header h1,
+.waiver-header h1,
+.draft-header h1 {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  line-height: 1;
+}
+
+/* Header description styling */
+.page-header p,
+.trade-discovery-header p,
+.dashboard-header p,
+.roster-header p,
+.team-analysis-header p,
+.news-header p,
+.waiver-header p,
+.draft-header p {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  line-height: 1.2;
+  flex: 1;
+}
+
+/* Header actions (buttons, filters, etc) */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.header-actions button {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+/* === INLINE STYLE HEADER (Even more compact) === */
+.page-header-inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0 var(--space-3) 0;
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-color);
+  background: transparent;
+}
+
+.page-header-inline h1 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.page-header-inline p {
+  display: none; /* Hide description in inline mode */
+}
+
+/* === BREADCRUMB STYLE HEADER === */
+.page-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.page-breadcrumb .separator {
+  color: var(--text-muted);
+}
+
+.page-breadcrumb .current {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* === MOBILE RESPONSIVENESS === */
+@media (max-width: 768px) {
+  .page-header,
+  .trade-discovery-header,
+  .dashboard-header,
+  .roster-header,
+  .team-analysis-header,
+  .news-header,
+  .waiver-header,
+  .draft-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    max-height: none;
+  }
+  
+  .page-header h1,
+  .trade-discovery-header h1,
+  .dashboard-header h1,
+  .roster-header h1,
+  .team-analysis-header h1,
+  .news-header h1,
+  .waiver-header h1,
+  .draft-header h1 {
+    font-size: var(--font-size-lg);
+  }
+  
+  .page-header p,
+  .trade-discovery-header p,
+  .dashboard-header p,
+  .roster-header p,
+  .team-analysis-header p,
+  .news-header p,
+  .waiver-header p,
+  .draft-header p {
+    display: none; /* Hide descriptions on mobile to save space */
+  }
+  
+  .header-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* === ULTRA COMPACT MODE (for data-heavy screens) === */
+.compact-mode .page-header,
+.compact-mode .trade-discovery-header,
+.compact-mode .dashboard-header {
+  display: none; /* Hide headers entirely in compact mode */
+}
+
+.compact-mode h1 {
+  font-size: var(--font-size-base);
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* === STICKY HEADER OPTION === */
+.page-header-sticky {
+  position: sticky;
+  top: 70px; /* Below main header */
+  z-index: 100;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  border-radius: 0;
+  margin-bottom: 0;
+}

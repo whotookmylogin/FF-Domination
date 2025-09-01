@@ -1,10 +1,22 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import './Sidebar.css';
 
-const Sidebar = ({ leagues, selectedLeague, onLeagueChange }) => {
+const Sidebar = ({ leagues, selectedLeague, onLeagueChange, isOpen, onClose }) => {
+  const handleNavClick = () => {
+    // Close menu on mobile when clicking a link
+    if (window.innerWidth <= 768) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="sidebar">
+    <div className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
+      <button className="sidebar-close-btn" onClick={onClose}>
+        <FontAwesomeIcon icon={faTimes} />
+      </button>
       <div className="sidebar-header">
         <h2>Fantasy Football Domination</h2>
       </div>
@@ -50,20 +62,62 @@ const Sidebar = ({ leagues, selectedLeague, onLeagueChange }) => {
             <span className="section-title">📊 Daily Tools</span>
           </li>
           <li className="nav-item">
+<<<<<<< HEAD
             <Link to="/" className="nav-link">🏠 Dashboard</Link>
           </li>
           <li className="nav-item">
             <Link to="/team-rosters" className="nav-link roster-link">
+=======
+            <a href="/" className="nav-link" onClick={handleNavClick}>🏠 Dashboard</a>
+          </li>
+          
+          {/* Team Management */}
+          <li className="nav-section-header">
+            <span className="section-title">👥 Team Management</span>
+          </li>
+          <li className="nav-item">
+            <a href="/team-import" className="nav-link import-link" onClick={handleNavClick}>
+              ⚡ Import Team
+            </a>
+          </li>
+          <li className="nav-item">
+            <a href="/team-rosters" className="nav-link roster-link" onClick={handleNavClick}>
+>>>>>>> ui
               🏈 My Roster
             </Link>
           </li>
           <li className="nav-item">
+<<<<<<< HEAD
             <Link to="/waiver-wire" className="nav-link">🏃 Waiver Wire</Link>
           </li>
           <li className="nav-item">
             <Link to="/ai-trade-discovery" className="nav-link ai-link">
               🤖 AI Trade Discovery
             </Link>
+=======
+            <a href="/team-rosters?view=league" className="nav-link" onClick={handleNavClick}>
+              🏆 League Rosters
+            </a>
+          </li>
+          <li className="nav-item">
+            <a href="/team-analysis" className="nav-link" onClick={handleNavClick}>📈 Team Analysis</a>
+          </li>
+          
+          {/* Trading & Transactions */}
+          <li className="nav-section-header">
+            <span className="section-title">🔄 Trading & Moves</span>
+          </li>
+          <li className="nav-item">
+            <a href="/ai-trade-discovery" className="nav-link ai-link" onClick={handleNavClick}>
+              🤖 AI Trade Discovery
+            </a>
+          </li>
+          <li className="nav-item">
+            <a href="/trade-suggestions" className="nav-link" onClick={handleNavClick}>💡 Trade Suggestions</a>
+          </li>
+          <li className="nav-item">
+            <a href="/waiver-wire" className="nav-link" onClick={handleNavClick}>🏃 Waiver Wire</a>
+>>>>>>> ui
           </li>
           
           {/* League Information */}
@@ -71,6 +125,7 @@ const Sidebar = ({ leagues, selectedLeague, onLeagueChange }) => {
             <span className="section-title">🏆 League</span>
           </li>
           <li className="nav-item">
+<<<<<<< HEAD
             <Link to="/team-rosters?view=league" className="nav-link">
               👥 League Rosters
             </Link>
@@ -80,6 +135,11 @@ const Sidebar = ({ leagues, selectedLeague, onLeagueChange }) => {
           </li>
           <li className="nav-item">
             <Link to="/trade-suggestions" className="nav-link">💡 Trade Ideas</Link>
+=======
+            <a href="/expert-draft-tool" className="nav-link expert-link" onClick={handleNavClick}>
+              🏆 Expert Draft Tool
+            </a>
+>>>>>>> ui
           </li>
           
           {/* News & Updates */}
@@ -87,6 +147,7 @@ const Sidebar = ({ leagues, selectedLeague, onLeagueChange }) => {
             <span className="section-title">📰 Updates</span>
           </li>
           <li className="nav-item">
+<<<<<<< HEAD
             <Link to="/news" className="nav-link">📰 News Feed</Link>
           </li>
           
@@ -98,6 +159,9 @@ const Sidebar = ({ leagues, selectedLeague, onLeagueChange }) => {
             <Link to="/settings" className="nav-link">
               ⚙️ Settings
             </Link>
+=======
+            <a href="/news" className="nav-link" onClick={handleNavClick}>📰 News Feed</a>
+>>>>>>> ui
           </li>
         </ul>
       </nav>

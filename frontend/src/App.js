@@ -22,6 +22,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [apiHealthy, setApiHealthy] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   useEffect(() => {
     const initializeApp = async () => {
@@ -196,6 +197,7 @@ function App() {
     }
   };
   
+<<<<<<< HEAD
   if (loading) {
     return (
       <div className="app-container">
@@ -266,8 +268,36 @@ function App() {
         )}
         
         <Header user={user} selectedLeague={selectedLeague} leagues={leagues} onLeagueChange={setSelectedLeague} />
+=======
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
+  return (
+    <Router>
+      <div className={`app-container ${isMobileMenuOpen ? 'menu-open' : ''}`}>
+        <Header 
+          user={user} 
+          selectedLeague={selectedLeague} 
+          leagues={leagues} 
+          onLeagueChange={setSelectedLeague}
+          onMenuToggle={toggleMobileMenu}
+          isMobileMenuOpen={isMobileMenuOpen}
+        />
+>>>>>>> ui
         <div className="app-layout">
-          <Sidebar leagues={leagues} selectedLeague={selectedLeague} onLeagueChange={setSelectedLeague} />
+          <Sidebar 
+            leagues={leagues} 
+            selectedLeague={selectedLeague} 
+            onLeagueChange={setSelectedLeague}
+            isOpen={isMobileMenuOpen}
+            onClose={closeMobileMenu}
+          />
+          {isMobileMenuOpen && <div className="mobile-overlay" onClick={closeMobileMenu} />}
           <main className="app-content">
             <Routes>
               <Route path="/" element={<Dashboard league={selectedLeague} />} />
