@@ -10,29 +10,27 @@
 .trade-discovery-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-4);
-  background: var(--bg-card);
-  padding: var(--space-4) var(--space-6);
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--border-color);
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .trade-discovery-header h1 {
-  font-size: var(--font-size-2xl);
+  font-size: var(--font-size-lg);
   margin: 0;
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .trade-discovery-header p {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
   margin: 0;
-  margin-left: var(--space-4);
+  margin-left: auto;
 }
 
 /* AI Configuration Panel */
