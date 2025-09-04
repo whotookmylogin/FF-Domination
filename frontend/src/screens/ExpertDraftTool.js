@@ -27,10 +27,8 @@ const ExpertDraftTool = ({ league }) => {
     }
   });
 
-  // AI configuration - API keys should be provided by backend
+  // AI configuration - API keys are handled by backend
   const [aiConfig, setAiConfig] = useState({
-    openai_key: '',  // Will be populated from backend/environment
-    openrouter_key: '',  // Will be populated from backend/environment
     use_ai: true
   });
 
@@ -65,11 +63,7 @@ const ExpertDraftTool = ({ league }) => {
         ...draftConfig
       };
 
-      // Add AI keys (hardcoded for user)
-      if (aiConfig.use_ai) {
-        requestBody.openai_key = aiConfig.openai_key;
-        requestBody.openrouter_key = aiConfig.openrouter_key;
-      }
+      // AI is enabled by default on backend with environment keys
 
       const response = await fetch('http://localhost:8000/ai/draft-strategy', {
         method: 'POST',
@@ -102,10 +96,7 @@ const ExpertDraftTool = ({ league }) => {
         league_settings: draftConfig.league_settings
       };
 
-      if (aiConfig.use_ai) {
-        if (aiConfig.openai_key) requestBody.openai_key = aiConfig.openai_key;
-        if (aiConfig.openrouter_key) requestBody.openrouter_key = aiConfig.openrouter_key;
-      }
+      // AI keys are handled by backend environment variables
 
       const response = await fetch('http://localhost:8000/ai/analyze-draft-pick', {
         method: 'POST',
@@ -135,10 +126,7 @@ const ExpertDraftTool = ({ league }) => {
         num_recommendations: 5
       };
 
-      if (aiConfig.use_ai) {
-        if (aiConfig.openai_key) requestBody.openai_key = aiConfig.openai_key;
-        if (aiConfig.openrouter_key) requestBody.openrouter_key = aiConfig.openrouter_key;
-      }
+      // AI keys are handled by backend environment variables
 
       const response = await fetch('http://localhost:8000/ai/draft-recommendations', {
         method: 'POST',
@@ -196,42 +184,14 @@ const ExpertDraftTool = ({ league }) => {
         <p>Your 30-year fantasy veteran AI coach with 90% championship winning ratio</p>
       </div>
 
-      {/* AI Configuration */}
-      <div className="ai-config-section">
-        <h3>🤖 AI Configuration</h3>
-        <div className="config-toggle">
-          <label>
-            <input
-              type="checkbox"
-              checked={aiConfig.use_ai}
-              onChange={(e) => setAiConfig({...aiConfig, use_ai: e.target.checked})}
-            />
-            Enable Expert AI Analysis (30-year veteran insights)
-          </label>
+      {/* AI Status */}
+      <div className="ai-status-section">
+        <div className="ai-status-indicator">
+          <span className="status-icon">🤖</span>
+          <span className="status-text">Expert AI Analysis Enabled</span>
+          <span className="status-badge">READY</span>
         </div>
-        
-        {aiConfig.use_ai && (
-          <div className="api-keys-grid">
-            <div className="key-input">
-              <label>OpenAI API Key:</label>
-              <input
-                type="password"
-                placeholder="sk-..."
-                value={aiConfig.openai_key}
-                onChange={(e) => setAiConfig({...aiConfig, openai_key: e.target.value})}
-              />
-            </div>
-            <div className="key-input">
-              <label>OpenRouter API Key:</label>
-              <input
-                type="password"
-                placeholder="sk-or-..."
-                value={aiConfig.openrouter_key}
-                onChange={(e) => setAiConfig({...aiConfig, openrouter_key: e.target.value})}
-              />
-            </div>
-          </div>
-        )}
+        <p className="ai-description">30-year veteran AI coach ready to provide championship-level insights</p>
       </div>
 
       {/* Tab Navigation */}

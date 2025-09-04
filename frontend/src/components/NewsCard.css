@@ -81,26 +81,68 @@
   font-size: var(--font-size-base);
 }
 
+.tldr-section {
+  padding: var(--padding-md) 0;
+  margin-bottom: var(--space-4);
+}
+
+.tldr-content {
+  color: #1a1a1a;
+  line-height: 1.8;
+  margin: 0 0 var(--space-3) 0;
+  font-size: var(--font-size-base);
+  padding-left: var(--padding-md);
+}
+
+.personalized-impact {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid #dee2e6;
+}
+
+.personalized-impact strong {
+  display: block;
+  color: #1976D2;
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-1);
+}
+
+.personalized-impact span {
+  color: #424242;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+  display: block;
+}
+
+.affected-players {
+  margin-top: var(--space-2);
+  color: #666;
+  font-size: var(--font-size-xs);
+}
+
 .news-actions {
   text-align: right;
+  margin-top: var(--space-3);
 }
 
 .read-more-btn {
-  padding: var(--padding-sm) var(--padding-md);
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-md);
-  font-weight: var(--font-weight-medium);
-  font-size: var(--font-size-sm);
+  padding: 8px 16px;
+  background: #1976D2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 14px;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
 }
 
 .read-more-btn:hover {
-  background: var(--bg-hover);
-  border-color: var(--border-color-light);
+  background: #1565C0;
   transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 @media (max-width: 768px) {

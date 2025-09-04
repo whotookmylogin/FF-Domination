@@ -122,13 +122,41 @@ class ESPNAPIIntegration:
                 if str(team.team_id) == user_id:
                     roster = []
                     for player in team.roster:
+                        # Get projected points - try multiple attributes
+                        projected_points = 0
+                        try:
+                            if hasattr(player, 'projected_points'):
+                                projected_points = player.projected_points
+                            elif hasattr(player, 'stats'):
+                                # Try to get current week projections
+                                projected_points = player.stats.get('projected_points', 0)
+                            elif hasattr(player, 'points'):
+                                projected_points = player.points
+                        except:
+                            pass
+                        
+                        # Default projected points by position if none found
+                        if projected_points == 0:
+                            position = getattr(player, 'position', 'Unknown')
+                            if position == 'QB':
+                                projected_points = 18
+                            elif position in ['RB', 'WR']:
+                                projected_points = 12
+                            elif position == 'TE':
+                                projected_points = 8
+                            elif position in ['K', 'DEF', 'D/ST']:
+                                projected_points = 8
+                            else:
+                                projected_points = 5
+                        
                         roster.append({
                             'player_id': getattr(player, 'playerId', None),
                             'name': getattr(player, 'name', 'Unknown'),
                             'position': getattr(player, 'position', 'Unknown'),
                             'team': getattr(player, 'proTeam', 'Unknown'),
                             'status': getattr(player, 'status', 'Active'),
-                            'injury_status': getattr(player, 'injuryStatus', None)
+                            'injury_status': getattr(player, 'injuryStatus', None),
+                            'projected_points': projected_points
                         })
                     return roster
             

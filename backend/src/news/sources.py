@@ -6,6 +6,8 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 from abc import ABC, abstractmethod
 import feedparser
+import html
+import re
 
 class NewsSource(ABC):
     """Abstract base class for news sources."""
@@ -35,6 +37,49 @@ class NewsSource(ABC):
     def get_news(self) -> List[Dict[str, Any]]:
         """Fetch news from the source."""
         pass
+    
+    def _clean_text(self, text: str) -> str:
+        """Clean HTML entities and formatting from text."""
+        if not text:
+            return ""
+        # Decode HTML entities
+        text = html.unescape(text)
+        # Remove HTML tags
+        text = re.sub(r'<[^>]+>', '', text)
+        # Clean up whitespace
+        text = ' '.join(text.split())
+        return text
+    
+    def _generate_tldr(self, title: str, content: str) -> str:
+        """Generate a TLDR summary from title and content."""
+        if not content or content == "No summary available.":
+            # Extract key info from title
+            if "injury" in title.lower():
+                return "Injury update affecting fantasy value"
+            elif "trade" in title.lower():
+                return "Trade news impacting team dynamics"
+            elif "waiver" in title.lower():
+                return "Waiver wire opportunity"
+            elif any(word in title.lower() for word in ["questionable", "doubtful", "out"]):
+                return "Player availability update for upcoming game"
+            elif "practice" in title.lower():
+                return "Practice participation update"
+            else:
+                # Extract first meaningful part of title
+                clean_title = self._clean_text(title)
+                if len(clean_title) > 60:
+                    return clean_title[:60] + "..."
+                return clean_title
+        
+        # Clean and truncate content for TLDR
+        clean_content = self._clean_text(content)
+        if len(clean_content) > 100:
+            # Find first sentence or 100 chars
+            first_sentence = clean_content.split('.')[0]
+            if len(first_sentence) < 100:
+                return first_sentence + "."
+            return clean_content[:100] + "..."
+        return clean_content
 
 class ESPNNewsSource(NewsSource):
     """ESPN NFL News integration using both API and RSS feeds."""
@@ -72,9 +117,10 @@ class ESPNNewsSource(NewsSource):
             except Exception as e:
                 logging.error(f"ESPN RSS also failed: {str(e)}")
         
-        # If both fail, return mock data for development
+        # If both fail, return empty list (no mock data)
         if not news_items:
-            return self._get_mock_espn_data()
+            logging.warning("No ESPN news available from API or RSS")
+            return []
         
         return news_items
     
@@ -97,9 +143,12 @@ class ESPNNewsSource(NewsSource):
             news_items = []
             
             for article in data.get('articles', []):
+                title = self._clean_text(article.get('headline', ''))
+                content = self._clean_text(article.get('description', ''))
                 news_items.append({
-                    'title': article.get('headline', ''),
-                    'content': article.get('description', ''),
+                    'title': title,
+                    'content': content,
+                    'tldr': self._generate_tldr(title, content),
                     'timestamp': article.get('published', datetime.now().isoformat()),
                     'url': article.get('links', {}).get('web', {}).get('href', ''),
                     'source': self.name,
@@ -121,13 +170,16 @@ class ESPNNewsSource(NewsSource):
         news_items = []
         
         for entry in feed.entries[:20]:  # Limit to 20 items
+            title = self._clean_text(entry.get('title', ''))
+            content = self._clean_text(entry.get('summary', ''))
             news_items.append({
-                'title': entry.get('title', ''),
-                'content': entry.get('summary', ''),
+                'title': title,
+                'content': content,
+                'tldr': self._generate_tldr(title, content),
                 'timestamp': entry.get('published', datetime.now().isoformat()),
                 'url': entry.get('link', ''),
                 'source': self.name,
-                'urgency_score': self._calculate_urgency({'title': entry.get('title', ''), 'description': entry.get('summary', '')})
+                'urgency_score': self._calculate_urgency({'title': title, 'description': content})
             })
         
         return news_items
@@ -217,7 +269,7 @@ class NFLNewsSource(NewsSource):
             return self._fetch_from_rss()
         except Exception as e:
             logging.error(f"NFL.com RSS failed: {str(e)}")
-            return self._get_mock_nfl_data()
+            return []  # Return empty list instead of mock data
     
     def _fetch_from_rss(self) -> List[Dict[str, Any]]:
         """
@@ -235,15 +287,18 @@ class NFLNewsSource(NewsSource):
             news_items = []
             
             for entry in feed.entries[:20]:  # Limit to 20 items
+                title = self._clean_text(entry.get('title', ''))
+                content = self._clean_text(entry.get('summary', ''))
                 news_items.append({
-                    'title': entry.get('title', ''),
-                    'content': entry.get('summary', ''),
+                    'title': title,
+                    'content': content,
+                    'tldr': self._generate_tldr(title, content),
                     'timestamp': entry.get('published', datetime.now().isoformat()),
                     'url': entry.get('link', ''),
                     'source': self.name,
                     'urgency_score': self._calculate_urgency({
-                        'title': entry.get('title', ''),
-                        'description': entry.get('summary', '')
+                        'title': title,
+                        'description': content
                     })
                 })
             
@@ -332,15 +387,128 @@ class RotowireNewsSource(NewsSource):
         
     def get_news(self) -> List[Dict[str, Any]]:
         """
-        Fetch news from FantasyPros/Rotowire with comprehensive mock data.
+        Fetch news from FantasyPros RSS feeds and other free sources.
         
         Returns:
             list: List of news items with title, content, timestamp, and url
         """
         self._check_rate_limit()
         
-        # For now, return realistic mock data since FantasyPros API requires paid access
-        return self._get_comprehensive_fantasy_news()
+        news_items = []
+        
+        # Try FantasyPros RSS feed
+        try:
+            fantasypros_rss = self._fetch_fantasypros_rss()
+            news_items.extend(fantasypros_rss)
+            logging.info(f"Fetched {len(fantasypros_rss)} items from FantasyPros RSS")
+        except Exception as e:
+            logging.warning(f"FantasyPros RSS failed: {e}")
+        
+        # Try CBS Sports RSS feed as backup
+        if len(news_items) < 5:
+            try:
+                cbs_rss = self._fetch_cbs_sports_rss()
+                news_items.extend(cbs_rss)
+                logging.info(f"Fetched {len(cbs_rss)} items from CBS Sports RSS")
+            except Exception as e:
+                logging.warning(f"CBS Sports RSS failed: {e}")
+        
+        # Try Yahoo Sports RSS feed
+        if len(news_items) < 10:
+            try:
+                yahoo_rss = self._fetch_yahoo_sports_rss()
+                news_items.extend(yahoo_rss)
+                logging.info(f"Fetched {len(yahoo_rss)} items from Yahoo Sports RSS")
+            except Exception as e:
+                logging.warning(f"Yahoo Sports RSS failed: {e}")
+        
+        # Remove duplicates and sort by timestamp
+        seen_titles = set()
+        unique_items = []
+        for item in news_items:
+            if item['title'] not in seen_titles:
+                seen_titles.add(item['title'])
+                unique_items.append(item)
+        
+        return unique_items[:20]  # Return top 20 items
+    
+    def _fetch_fantasypros_rss(self) -> List[Dict[str, Any]]:
+        """
+        Fetch news from FantasyPros RSS feed.
+        
+        Returns:
+            list: News items from FantasyPros
+        """
+        rss_url = "https://www.fantasypros.com/nfl/player-news.php?format=rss"
+        feed = feedparser.parse(rss_url)
+        news_items = []
+        
+        for entry in feed.entries[:15]:
+            title = self._clean_text(entry.get('title', ''))
+            content = self._clean_text(entry.get('summary', ''))
+            news_items.append({
+                'title': title,
+                'content': content,
+                'tldr': self._generate_tldr(title, content),
+                'timestamp': entry.get('published', datetime.now().isoformat()),
+                'url': entry.get('link', ''),
+                'source': 'FantasyPros',
+                'urgency_score': self._calculate_urgency({'title': title, 'description': content})
+            })
+        
+        return news_items
+    
+    def _fetch_cbs_sports_rss(self) -> List[Dict[str, Any]]:
+        """
+        Fetch news from CBS Sports RSS feed.
+        
+        Returns:
+            list: News items from CBS Sports
+        """
+        rss_url = "https://www.cbssports.com/rss/headlines/nfl/"
+        feed = feedparser.parse(rss_url)
+        news_items = []
+        
+        for entry in feed.entries[:10]:
+            title = self._clean_text(entry.get('title', ''))
+            content = self._clean_text(entry.get('summary', ''))
+            news_items.append({
+                'title': title,
+                'content': content,
+                'tldr': self._generate_tldr(title, content),
+                'timestamp': entry.get('published', datetime.now().isoformat()),
+                'url': entry.get('link', ''),
+                'source': 'CBS Sports',
+                'urgency_score': self._calculate_urgency({'title': title, 'description': content})
+            })
+        
+        return news_items
+    
+    def _fetch_yahoo_sports_rss(self) -> List[Dict[str, Any]]:
+        """
+        Fetch news from Yahoo Sports RSS feed.
+        
+        Returns:
+            list: News items from Yahoo Sports
+        """
+        rss_url = "https://sports.yahoo.com/nfl/rss/"
+        feed = feedparser.parse(rss_url)
+        news_items = []
+        
+        for entry in feed.entries[:10]:
+            title = self._clean_text(entry.get('title', ''))
+            content = self._clean_text(entry.get('summary', ''))
+            news_items.append({
+                'title': title,
+                'content': content,
+                'tldr': self._generate_tldr(title, content),
+                'timestamp': entry.get('published', datetime.now().isoformat()),
+                'url': entry.get('link', ''),
+                'source': 'Yahoo Sports',
+                'urgency_score': self._calculate_urgency({'title': title, 'description': content})
+            })
+        
+        return news_items
     
     def _get_comprehensive_fantasy_news(self) -> List[Dict[str, Any]]:
         """

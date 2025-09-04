@@ -19,8 +19,46 @@ const Dashboard = ({ league }) => {
   const [tradeSuggestions, setTradeSuggestions] = useState([]);
   const [waiverClaims, setWaiverClaims] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [tradeSuggestionsLoading, setTradeSuggestionsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(null);
   
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    setError(null);
+    
+    try {
+      // First refresh ESPN connection
+      const refreshResponse = await fetch('http://localhost:8000/refresh/espn', {
+        method: 'POST'
+      });
+      const refreshData = await refreshResponse.json();
+      
+      if (refreshData.status === 'success') {
+        console.log('ESPN connection refreshed successfully');
+        
+        // Now fetch fresh roster data with refresh flag
+        const teamId = league?.userTeam?.id || '7';
+        const rosterData = await ApiService.getRoster(teamId, true); // true for refresh
+        
+        if (rosterData.status === 'success') {
+          const realRoster = rosterData.data.data || rosterData.data;
+          setRoster(realRoster);
+          setLastUpdated(new Date());
+          console.log('Roster refreshed successfully');
+        }
+      } else {
+        setError('Failed to refresh ESPN connection');
+      }
+    } catch (err) {
+      console.error('Error refreshing data:', err);
+      setError('Failed to refresh data. Please try again.');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   useEffect(() => {
     const fetchRealData = async () => {
       if (!league) return;
@@ -41,6 +79,7 @@ const Dashboard = ({ league }) => {
           // Set real roster data (handle double nesting)
           const realRoster = rosterData.data.data || rosterData.data;
           setRoster(realRoster);
+          setLastUpdated(new Date());
           
           // Get team data for dashboard display
           const teamData = await ApiService.getTeamData(teamId);
@@ -67,14 +106,32 @@ const Dashboard = ({ league }) => {
           }
         }
         
-        // Clear mock data - only use real data
+        // Fetch trade suggestions - wrapped in try/catch to prevent dashboard failure
+        try {
+          await fetchTradeSuggestions(teamId);
+        } catch (tradeError) {
+          console.warn('Trade suggestions unavailable:', tradeError);
+          // Don't fail the entire dashboard if trade suggestions fail
+        }
+        
+        // Clear other mock data
         setNewsItems([]);
-        setTradeSuggestions([]);
         setWaiverClaims([]);
         
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
-        setError('Unable to load dashboard data. Please check your connection.');
+        console.error('Error details:', error.message, error.response);
+        
+        // More specific error message
+        let errorMessage = 'Unable to load dashboard data. ';
+        if (error.message.includes('Network')) {
+          errorMessage += 'Please check your internet connection.';
+        } else if (error.response?.status === 404) {
+          errorMessage += 'Team data not found. Please try refreshing.';
+        } else {
+          errorMessage += error.message || 'Please check your connection.';
+        }
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -84,6 +141,35 @@ const Dashboard = ({ league }) => {
       fetchRealData();
     }
   }, [league]);
+  
+  /**
+   * Fetch AI-powered trade suggestions for the user's team
+   * @param {string} teamId - User's team ID
+   */
+  const fetchTradeSuggestions = async (teamId) => {
+    try {
+      setTradeSuggestionsLoading(true);
+      console.log(`Fetching trade suggestions for team: ${teamId}, league: ${league?.id}`);
+      
+      const response = await ApiService.getAILeagueTrades(teamId, league?.id);
+      
+      if (response.status === 'success' && (response.trades || response.data)) {
+        // Handle the response data structure - API returns 'trades' not 'data'
+        const suggestions = response.trades || response.data;
+        const suggestionsArray = Array.isArray(suggestions) ? suggestions : [suggestions];
+        console.log('Trade suggestions fetched:', suggestionsArray);
+        setTradeSuggestions(suggestionsArray);
+      } else {
+        console.log('No trade suggestions available');
+        setTradeSuggestions([]);
+      }
+    } catch (error) {
+      console.error('Error fetching trade suggestions:', error);
+      setTradeSuggestions([]);
+    } finally {
+      setTradeSuggestionsLoading(false);
+    }
+  };
   
   const weeklyTrendData = {
     labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8'],
@@ -177,8 +263,60 @@ const Dashboard = ({ league }) => {
     <div className="app-container">
       <div className="dashboard-content">
         <div className="page-header">
-          <h1>🏠 Dashboard</h1>
-          <p>Your fantasy football command center</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h1>🏠 Dashboard</h1>
+              <p>Your fantasy football command center</p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
+              <button 
+                className={`btn ${refreshing ? 'btn-disabled' : 'btn-primary'}`}
+                onClick={handleRefresh}
+                disabled={refreshing}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 20px'
+                }}
+              >
+              {refreshing ? (
+                <>
+                  <span className="spinner" style={{
+                    width: '16px',
+                    height: '16px',
+                    border: '2px solid #f3f3f3',
+                    borderTop: '2px solid #3498db',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite',
+                    display: 'inline-block'
+                  }}></span>
+                  Refreshing...
+                </>
+              ) : (
+                <>
+                  🔄 Refresh ESPN Data
+                </>
+              )}
+              </button>
+              {lastUpdated && (
+                <small style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>
+                  Last updated: {lastUpdated.toLocaleTimeString()}
+                </small>
+              )}
+            </div>
+          </div>
+          {error && (
+            <div style={{
+              backgroundColor: '#ffebee',
+              color: '#c62828',
+              padding: '10px',
+              borderRadius: '4px',
+              marginTop: '10px'
+            }}>
+              {error}
+            </div>
+          )}
         </div>
         
         {/* Intelligent Notifications Section */}
@@ -254,6 +392,49 @@ const Dashboard = ({ league }) => {
                 <button className="btn btn-primary" onClick={() => window.location.reload()}>
                   Refresh Data
                 </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Trade Suggestions */}
+        <div className="modern-card trade-suggestions-section">
+          <div className="modern-card-header">
+            <h3 className="modern-card-title">AI Trade Suggestions</h3>
+            {tradeSuggestionsLoading && (
+              <div className="loading-indicator">
+                <div className="loading-spinner-sm"></div>
+                <span>Loading suggestions...</span>
+              </div>
+            )}
+          </div>
+          
+          <div className="trade-suggestions-container">
+            {tradeSuggestionsLoading ? (
+              <div className="loading-placeholder">
+                <p>Analyzing league for optimal trade opportunities...</p>
+              </div>
+            ) : tradeSuggestions.length > 0 ? (
+              <div className="trade-suggestions-grid">
+                {tradeSuggestions.slice(0, 3).map((suggestion, index) => (
+                  <TradeSuggestionCard 
+                    key={`trade-${index}`} 
+                    suggestion={suggestion} 
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="no-suggestions">
+                <p>No trade suggestions available at this time.</p>
+                <p>Check back later as league dynamics change!</p>
+              </div>
+            )}
+            
+            {tradeSuggestions.length > 3 && (
+              <div className="view-more-trades">
+                <a href="/ai-trade-discovery" className="btn btn-secondary">
+                  View All Trade Suggestions ({tradeSuggestions.length})
+                </a>
               </div>
             )}
           </div>

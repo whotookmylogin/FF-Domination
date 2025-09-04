@@ -1,6 +1,12 @@
 from typing import List, Dict, Any, Optional
 from .sources import ESPNNewsSource, NFLNewsSource, RotowireNewsSource
+from .article_analyzer import ArticleAnalyzer
+try:
+    from .perplexity_source import PerplexityNewsSource
+except ImportError:
+    PerplexityNewsSource = None
 import logging
+import os
 try:
     from sqlalchemy.orm import Session
 except ImportError:
@@ -11,21 +17,41 @@ class NewsAggregationService:
     Main service for aggregating news from multiple sources.
     """
     
-    def __init__(self, rotowire_api_key: str = None):
+    def __init__(self, rotowire_api_key: str = None, perplexity_api_key: str = None):
         """
         Initialize news aggregation service with all sources.
         
         Args:
             rotowire_api_key (str, optional): API key for Rotowire service
+            perplexity_api_key (str, optional): API key for Perplexity service
         """
         self.espn_source = ESPNNewsSource()
         self.nfl_source = NFLNewsSource()
         self.rotowire_source = RotowireNewsSource(rotowire_api_key)
         self.sources = [self.espn_source, self.nfl_source, self.rotowire_source]
         
-    def aggregate_news(self) -> List[Dict[str, Any]]:
+        # Add Perplexity source if available
+        perplexity_key = perplexity_api_key or os.getenv("PERPLEXITY_API_KEY")
+        if PerplexityNewsSource and perplexity_key:
+            self.perplexity_source = PerplexityNewsSource(perplexity_key)
+            self.sources.append(self.perplexity_source)
+            logging.info("Perplexity news source initialized")
+        else:
+            self.perplexity_source = None
+            if not perplexity_key:
+                logging.info("Perplexity API key not configured")
+        
+        # Initialize article analyzer for enhanced summaries
+        self.article_analyzer = ArticleAnalyzer(perplexity_api_key=perplexity_key)
+        logging.info("Article analyzer initialized for enhanced summaries")
+        
+    def aggregate_news(self, enhance_articles: bool = True, max_enhance: int = 5) -> List[Dict[str, Any]]:
         """
-        Aggregate news from all sources.
+        Aggregate news from all sources with optional article enhancement.
+        
+        Args:
+            enhance_articles: Whether to fetch full articles and generate detailed summaries
+            max_enhance: Maximum number of articles to enhance (to avoid delays)
         
         Returns:
             list: Combined list of news items from all sources, sorted by timestamp
@@ -42,6 +68,15 @@ class NewsAggregationService:
         
         # Sort news by timestamp (newest first)
         all_news.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+        
+        # Enhance articles with full content analysis if requested
+        if enhance_articles and self.article_analyzer:
+            try:
+                logging.info(f"Enhancing top {max_enhance} articles with full content analysis...")
+                all_news = self.article_analyzer.enhance_news_batch(all_news, max_items=max_enhance)
+            except Exception as e:
+                logging.error(f"Failed to enhance articles: {e}")
+        
         return all_news
     
     def get_breaking_news(self, min_urgency: int = 4) -> List[Dict[str, Any]]:

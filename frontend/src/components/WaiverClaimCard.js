@@ -1,7 +1,7 @@
 import React from 'react';
 import './WaiverClaimCard.css';
 
-const WaiverClaimCard = ({ player, onClaim, faabBudget }) => {
+const WaiverClaimCard = ({ player, onClaim, faabBudget, platform }) => {
   const getStatusColor = (status) => {
     // Ensure status is a string before calling toLowerCase
     const statusStr = String(status || 'Active');
@@ -51,10 +51,58 @@ const WaiverClaimCard = ({ player, onClaim, faabBudget }) => {
           <span className="detail-label">Projected Points:</span>
           <span className="detail-value">{player.projectedPoints !== undefined ? player.projectedPoints : 'N/A'}</span>
         </div>
-        <div className="detail-item">
-          <span className="detail-label">Add Percentage:</span>
-          <span className="detail-value">{player.addPercentage !== undefined ? player.addPercentage + '%' : 'N/A'}</span>
-        </div>
+        
+        {/* Platform-specific fields */}
+        {platform?.toLowerCase() === 'sleeper' ? (
+          <>
+            {player.age && (
+              <div className="detail-item">
+                <span className="detail-label">Age:</span>
+                <span className="detail-value">{player.age}</span>
+              </div>
+            )}
+            {player.yearsExp !== undefined && (
+              <div className="detail-item">
+                <span className="detail-label">Experience:</span>
+                <span className="detail-value">{player.yearsExp} years</span>
+              </div>
+            )}
+            {player.recommendedFAAB && (
+              <div className="detail-item">
+                <span className="detail-label">Recommended FAAB:</span>
+                <span className="detail-value" style={{ fontWeight: 'bold', color: '#2196f3' }}>
+                  {player.recommendedFAAB}
+                </span>
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <div className="detail-item">
+              <span className="detail-label">Add Percentage:</span>
+              <span className="detail-value">{player.percentOwned !== undefined ? player.percentOwned + '%' : 'N/A'}</span>
+            </div>
+            {player.recommendedBid !== undefined && (
+              <div className="detail-item">
+                <span className="detail-label">Recommended Priority:</span>
+                <span className="detail-value">{player.recommendedBid}</span>
+              </div>
+            )}
+          </>
+        )}
+        
+        {player.bidRecommendation && (
+          <div className="detail-item">
+            <span className="detail-label">Recommendation:</span>
+            <span className="detail-value" style={{ 
+              fontWeight: 'bold',
+              color: player.bidRecommendation === 'HIGH PRIORITY' || player.bidRecommendation === 'CLAIM' ? '#4CAF50' : 
+                     player.bidRecommendation === 'MODERATE' || player.bidRecommendation === 'WATCH' ? '#FF9800' : '#666'
+            }}>
+              {player.bidRecommendation}
+            </span>
+          </div>
+        )}
       </div>
       
       <div className="waiver-actions">

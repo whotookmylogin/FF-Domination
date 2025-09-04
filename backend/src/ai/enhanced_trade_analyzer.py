@@ -143,12 +143,23 @@ Be specific, actionable, and consider all contextual factors including upcoming 
                     
                 # Only analyze trades between focus team and others
                 trade_opportunities = []
+                best_trades_per_team = {}  # Track best trade per partner team
+                
                 for other_team in all_teams:
                     if other_team['team_id'] != focus_team_id:
                         two_team_trades = self._find_two_team_trades(focus_team, other_team)
-                        trade_opportunities.extend(two_team_trades)
                         
-                logging.info(f"Generated {len(trade_opportunities)} potential trades for team {focus_team_id}")
+                        # Keep only the best trade with each partner team
+                        if two_team_trades:
+                            # Score trades and pick the best one
+                            best_trade = max(two_team_trades, 
+                                           key=lambda t: self._initial_trade_score(t))
+                            best_trades_per_team[other_team['team_id']] = best_trade
+                
+                # Convert to list and ensure we have diverse trading partners
+                trade_opportunities = list(best_trades_per_team.values())
+                        
+                logging.info(f"Generated {len(trade_opportunities)} potential trades for team {focus_team_id} with {len(best_trades_per_team)} different partners")
             else:
                 # Find all possible trade combinations
                 trade_opportunities = []
@@ -169,12 +180,25 @@ Be specific, actionable, and consider all contextual factors including upcoming 
                 #         three_team_trades = self._find_three_team_trades(team_combo)
                 #         trade_opportunities.extend(three_team_trades)
             
+            # Log the trade opportunities before filtering
+            logging.info(f"Generated {len(trade_opportunities)} total trade opportunities")
+            
             # Limit number of trades to analyze with AI (top 5 most viable)
             viable_trades = [t for t in trade_opportunities if self._is_viable_trade(t)]
-            logging.info(f"Found {len(viable_trades)} viable trades")
+            logging.info(f"Found {len(viable_trades)} viable trades after filtering")
+            
+            # If no viable trades found, let's be less restrictive and allow some trades through
+            if len(viable_trades) == 0 and len(trade_opportunities) > 0:
+                logging.warning("No viable trades found with strict filtering, using looser criteria")
+                # Take the top 3 best scoring trades even if they didn't pass viability
+                scored_trades = [(t, self._initial_trade_score(t)) for t in trade_opportunities]
+                scored_trades.sort(key=lambda x: x[1], reverse=True)
+                viable_trades = [t[0] for t in scored_trades[:3]]
+                logging.info(f"Using {len(viable_trades)} trades with looser criteria")
             
             # Sort by initial viability and take top 5
-            viable_trades = viable_trades[:5]
+            if len(viable_trades) > 5:
+                viable_trades = viable_trades[:5]
             logging.info(f"Analyzing top {len(viable_trades)} trades with AI")
             
             # AI analysis of each trade
@@ -251,7 +275,10 @@ Be specific, actionable, and consider all contextual factors including upcoming 
         team_a_needs = self._analyze_team_needs(team_a)
         team_b_needs = self._analyze_team_needs(team_b)
         
-        # Find players that could address needs
+        logging.debug(f"Team {team_a['team_id']} weak positions: {team_a_needs['weak_positions']}")
+        logging.debug(f"Team {team_b['team_id']} weak positions: {team_b_needs['weak_positions']}")
+        
+        # Find players that could address needs (weak positions)
         for position_needed in team_a_needs['weak_positions']:
             # Look for players in that position on team B
             available_players = [p for p in team_b['roster'] 
@@ -262,40 +289,70 @@ Be specific, actionable, and consider all contextual factors including upcoming 
                 trade_return = self._find_trade_return(team_a, team_b_needs, player)
                 
                 if trade_return:
-                    # Convert players to dicts
-                    trade_return_dicts = [self._player_to_dict(p) for p in trade_return]
-                    player_dict = self._player_to_dict(player)
-                    
-                    # Analyze bye week and matchup impacts
-                    bye_impact = self._analyze_bye_week_impact(
-                        team_a, team_b, trade_return_dicts, [player_dict]
-                    )
-                    matchup_adv = self._analyze_matchup_advantage(
-                        team_a, team_b, trade_return_dicts, [player_dict]
-                    )
-                    
-                    trade = TradeOpportunity(
-                        team_a_id=team_a['team_id'],
-                        team_b_id=team_b['team_id'],
-                        team_a_name=team_a.get('team_name', f"Team {team_a['team_id']}"),
-                        team_b_name=team_b.get('team_name', f"Team {team_b['team_id']}"),
-                        team_a_gives=trade_return_dicts,
-                        team_a_gets=[player_dict],
-                        team_b_gives=[player_dict],
-                        team_b_gets=trade_return_dicts,
-                        fairness_score=0.0,  # Will be calculated
-                        team_a_improvement=0.0,  # Will be calculated
-                        team_b_improvement=0.0,  # Will be calculated
-                        ai_analysis="",  # Will be filled by AI
-                        confidence_score=0.0,
-                        urgency="MEDIUM",
-                        bye_week_impact=bye_impact,
-                        matchup_advantage=matchup_adv,
-                        timing_recommendation=self._determine_trade_timing(bye_impact, matchup_adv)
-                    )
+                    trade = self._create_trade_opportunity(team_a, team_b, trade_return, [player])
                     trades.append(trade)
         
+        # If no trades found from weak positions, look for upgrade opportunities
+        if not trades:
+            logging.debug(f"No trades from weak positions, looking for upgrade opportunities")
+            # Look for upgrade opportunities - better players at same position
+            for position in ['QB', 'RB', 'WR', 'TE']:
+                team_a_players = [p for p in team_a['roster'] if p.get('position') == position]
+                team_b_players = [p for p in team_b['roster'] if p.get('position') == position]
+                
+                # Find team B players that are significantly better than team A's worst at that position
+                if team_a_players and team_b_players:
+                    worst_a_player = min(team_a_players, key=self._estimate_player_quality)
+                    worst_a_quality = self._estimate_player_quality(worst_a_player)
+                    
+                    for b_player in team_b_players:
+                        b_quality = self._estimate_player_quality(b_player)
+                        # Only consider if B's player is significantly better
+                        if b_quality > worst_a_quality + 1.5:  # At least 1.5 quality points better
+                            trade_return = self._find_trade_return(team_a, team_b_needs, b_player)
+                            if trade_return:
+                                trade = self._create_trade_opportunity(team_a, team_b, trade_return, [b_player])
+                                trades.append(trade)
+                                logging.debug(f"Found upgrade trade: {b_player.get('name')} ({b_quality:.2f}) for {trade_return[0].get('name')}")
+        
+        logging.debug(f"Generated {len(trades)} trades between teams {team_a['team_id']} and {team_b['team_id']}")
         return trades
+    
+    def _create_trade_opportunity(self, team_a: Dict[str, Any], team_b: Dict[str, Any], 
+                                team_a_gives: List[Dict[str, Any]], team_a_gets: List[Dict[str, Any]]) -> TradeOpportunity:
+        """Create a TradeOpportunity object"""
+        # Convert players to dicts
+        trade_return_dicts = [self._player_to_dict(p) for p in team_a_gives]
+        player_dicts = [self._player_to_dict(p) for p in team_a_gets]
+        
+        # Analyze bye week and matchup impacts
+        bye_impact = self._analyze_bye_week_impact(
+            team_a, team_b, trade_return_dicts, player_dicts
+        )
+        matchup_adv = self._analyze_matchup_advantage(
+            team_a, team_b, trade_return_dicts, player_dicts
+        )
+        
+        trade = TradeOpportunity(
+            team_a_id=team_a['team_id'],
+            team_b_id=team_b['team_id'],
+            team_a_name=team_a.get('team_name', f"Team {team_a['team_id']}"),
+            team_b_name=team_b.get('team_name', f"Team {team_b['team_id']}"),
+            team_a_gives=trade_return_dicts,
+            team_a_gets=player_dicts,
+            team_b_gives=player_dicts,
+            team_b_gets=trade_return_dicts,
+            fairness_score=0.0,  # Will be calculated
+            team_a_improvement=0.0,  # Will be calculated
+            team_b_improvement=0.0,  # Will be calculated
+            ai_analysis="",  # Will be filled by AI
+            confidence_score=0.0,
+            urgency="MEDIUM",
+            bye_week_impact=bye_impact,
+            matchup_advantage=matchup_adv,
+            timing_recommendation=self._determine_trade_timing(bye_impact, matchup_adv)
+        )
+        return trade
     
     def _analyze_team_needs(self, team: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze team's positional strengths and weaknesses"""
@@ -344,31 +401,70 @@ Be specific, actionable, and consider all contextual factors including upcoming 
             'team_record': f"{team.get('wins', 0)}-{team.get('losses', 0)}"
         }
     
+    def _initial_trade_score(self, trade: TradeOpportunity) -> float:
+        """Calculate initial score for a trade (before AI analysis)"""
+        # Calculate value balance
+        team_a_gives_value = sum(self._estimate_player_quality(p) for p in trade.team_a_gives)
+        team_a_gets_value = sum(self._estimate_player_quality(p) for p in trade.team_a_gets)
+        
+        # Score based on improvement for team A (the focus team)
+        improvement = team_a_gets_value - team_a_gives_value
+        
+        # Factor in fairness (trades closer to fair are more likely to be accepted)
+        if team_a_gives_value > 0 and team_a_gets_value > 0:
+            fairness_ratio = min(team_a_gives_value, team_a_gets_value) / max(team_a_gives_value, team_a_gets_value)
+        else:
+            fairness_ratio = 0.5
+        
+        # Combine improvement and fairness
+        return improvement * fairness_ratio
+    
     def _estimate_player_quality(self, player: Dict[str, Any]) -> float:
         """Estimate player quality on 1-10 scale"""
-        # This is a simplified quality estimation
-        # In reality, would use advanced metrics, projections, etc.
+        # Use projected points as primary quality metric if available
+        projected_points = player.get('projected_points', 0)
         
-        # Factors that increase quality
-        quality = 5.0  # Base quality
+        if projected_points > 0:
+            # Scale projected points to 1-10 based on position
+            position = player.get('position', '')
+            
+            # Position-specific scaling (higher points expected for QB)
+            if position == 'QB':
+                quality = min(10, projected_points / 3)  # 30 pts = 10 quality
+            elif position in ['RB', 'WR']:
+                quality = min(10, projected_points / 2)  # 20 pts = 10 quality
+            elif position == 'TE':
+                quality = min(10, projected_points / 1.5)  # 15 pts = 10 quality
+            elif position in ['K', 'DEF', 'D/ST']:
+                quality = min(10, projected_points / 1.2)  # 12 pts = 10 quality
+            else:
+                quality = min(10, projected_points / 2)  # Default scaling
+            
+            logging.debug(f"Player {player.get('name', 'Unknown')} ({position}): {projected_points} pts -> quality {quality:.2f}")
+        else:
+            # Fallback to heuristic-based quality
+            quality = 5.0  # Base quality
+            
+            # NFL team quality (rough proxy)
+            good_teams = ['BUF', 'KC', 'DAL', 'SF', 'PHI', 'MIA', 'CIN', 'BAL']
+            if player.get('team') in good_teams:
+                quality += 1.0
+            
+            # Position scarcity
+            scarce_positions = ['RB', 'TE']
+            if player.get('position') in scarce_positions:
+                quality += 0.5
+                
+            logging.debug(f"Player {player.get('name', 'Unknown')} ({player.get('position', 'POS')}): No projected points, heuristic quality {quality:.2f}")
         
-        # NFL team quality (rough proxy)
-        good_teams = ['BUF', 'KC', 'DAL', 'SF', 'PHI', 'MIA', 'CIN', 'BAL']
-        if player.get('team') in good_teams:
-            quality += 1.0
-        
-        # Position scarcity
-        scarce_positions = ['RB', 'TE']
-        if player.get('position') in scarce_positions:
-            quality += 0.5
-        
-        # Injury status
+        # Injury status adjustment
         if player.get('injury_status') in ['QUESTIONABLE', 'DOUBTFUL']:
             quality -= 1.0
         elif player.get('injury_status') == 'OUT':
-            quality -= 2.0
+            quality -= 3.0
         
-        return max(1.0, min(10.0, quality))
+        final_quality = max(1.0, min(10.0, quality))
+        return final_quality
     
     def _find_trade_return(self, offering_team: Dict[str, Any], 
                           receiving_team_needs: Dict[str, Any], 
@@ -408,11 +504,45 @@ Be specific, actionable, and consider all contextual factors including upcoming 
         """Check if trade is worth analyzing further"""
         # Basic viability checks
         if not trade.team_a_gives or not trade.team_a_gets:
+            logging.debug(f"Trade rejected: Empty gives/gets - team_a_gives={len(trade.team_a_gives)}, team_a_gets={len(trade.team_a_gets)}")
             return False
         
         if not trade.team_b_gives or not trade.team_b_gets:
+            logging.debug(f"Trade rejected: Empty gives/gets - team_b_gives={len(trade.team_b_gives)}, team_b_gets={len(trade.team_b_gets)}")
             return False
         
+        # Calculate total value on each side
+        team_a_gives_value = sum(self._estimate_player_quality(p) for p in trade.team_a_gives)
+        team_a_gets_value = sum(self._estimate_player_quality(p) for p in trade.team_a_gets)
+        
+        logging.debug(f"Trade values: team_a_gives={team_a_gives_value:.2f}, team_a_gets={team_a_gets_value:.2f}")
+        logging.debug(f"Players: gives={[p.get('name', 'Unknown') for p in trade.team_a_gives]}, gets={[p.get('name', 'Unknown') for p in trade.team_a_gets]}")
+        
+        # Skip trades that are too lopsided (more than 50% value difference) - but make it less restrictive
+        if team_a_gives_value > 0 and team_a_gets_value > 0:
+            value_ratio = min(team_a_gives_value, team_a_gets_value) / max(team_a_gives_value, team_a_gets_value)
+            logging.debug(f"Value ratio: {value_ratio:.2f} (threshold: 0.3)")
+            if value_ratio < 0.3:  # Changed from 0.5 to 0.3 to be less restrictive
+                logging.debug(f"Trade rejected: Too lopsided (value_ratio={value_ratio:.2f} < 0.3)")
+                return False
+        else:
+            logging.debug(f"Trade rejected: Zero value on one side")
+            return False
+        
+        # Skip trades where both sides trade the same position (e.g., WR for WR) 
+        # unless there's a significant quality difference
+        a_gives_positions = set(p.get('position') for p in trade.team_a_gives)
+        a_gets_positions = set(p.get('position') for p in trade.team_a_gets)
+        
+        if a_gives_positions == a_gets_positions:
+            # Same positions being traded - check if there's meaningful value difference
+            value_diff = abs(team_a_gives_value - team_a_gets_value)
+            logging.debug(f"Same position trade: value_diff={value_diff:.2f} (threshold: 1.5)")
+            if value_diff < 1.5:  # Changed from 2.0 to 1.5 to be less restrictive
+                logging.debug(f"Trade rejected: Same position with insufficient value difference ({value_diff:.2f} < 1.5)")
+                return False
+        
+        logging.debug(f"Trade passed viability check")
         return True
     
     def _ai_analyze_trade(self, trade: TradeOpportunity) -> Optional[TradeOpportunity]:

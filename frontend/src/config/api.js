@@ -237,13 +237,5 @@ export const checkApiHealth = async () => {
   }
 };
 
-/**
- * Export configuration for use in other modules
- */
-export default {
-  apiClient,
-  apiConfig,
-  withRetry,
-  checkApiHealth,
-  getApiBaseUrl
-};
+// Named exports are already available above
+// Removed default export to prevent circular dependency issues

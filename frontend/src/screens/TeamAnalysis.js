@@ -16,14 +16,24 @@ const TeamAnalysis = ({ league }) => {
       setError(null);
       
       try {
-        // TODO: Implement real team analysis endpoint
-        // const teamId = league?.userTeam?.id || '7';
-        // const response = await fetch(`http://localhost:8000/analytics/team/${teamId}`);
-        // const data = await response.json();
+        // Use the new ESPN team analytics endpoint
+        const teamId = league?.userTeam?.id || '7';
+        const leagueId = league?.id || '83806';
+        const response = await fetch(`http://localhost:8000/analytics/espn/team/${teamId}?league_id=${leagueId}`);
         
-        // For now, no mock data - just show empty state
-        setTeamAnalysis(null);
-        setError('Team analysis data is being calculated. Check back soon for detailed insights.');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+          setTeamAnalysis(data);
+          setError(null);
+        } else {
+          setTeamAnalysis(null);
+          setError(data.message || 'Unable to load team analysis.');
+        }
       } catch (err) {
         console.error('Error fetching team analysis:', err);
         setTeamAnalysis(null);
@@ -48,22 +58,18 @@ const TeamAnalysis = ({ league }) => {
       {
         label: 'Positional Strength',
         data: Object.values(teamAnalysis.positionalStrengths || {}),
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.6)',
-          'rgba(54, 162, 235, 0.6)',
-          'rgba(255, 206, 86, 0.6)',
-          'rgba(75, 192, 192, 0.6)',
-          'rgba(153, 102, 255, 0.6)',
-          'rgba(255, 159, 64, 0.6)'
-        ],
-        borderColor: [
-          'rgba(255, 99, 132, 1)',
-          'rgba(54, 162, 235, 1)',
-          'rgba(255, 206, 86, 1)',
-          'rgba(75, 192, 192, 1)',
-          'rgba(153, 102, 255, 1)',
-          'rgba(255, 159, 64, 1)'
-        ],
+        backgroundColor: Object.values(teamAnalysis.positionalStrengths || {}).map(strength => {
+          if (strength >= 8) return 'rgba(76, 175, 80, 0.6)';  // Green for strong
+          if (strength >= 6) return 'rgba(255, 193, 7, 0.6)';  // Yellow for average
+          if (strength >= 4) return 'rgba(255, 152, 0, 0.6)';  // Orange for below average
+          return 'rgba(244, 67, 54, 0.6)';  // Red for weak
+        }),
+        borderColor: Object.values(teamAnalysis.positionalStrengths || {}).map(strength => {
+          if (strength >= 8) return 'rgba(76, 175, 80, 1)';
+          if (strength >= 6) return 'rgba(255, 193, 7, 1)';
+          if (strength >= 4) return 'rgba(255, 152, 0, 1)';
+          return 'rgba(244, 67, 54, 1)';
+        }),
         borderWidth: 1
       }
     ]
@@ -100,19 +106,20 @@ const TeamAnalysis = ({ league }) => {
       
       {error && (
         <div className="info-banner" style={{
-          backgroundColor: '#e3f2fd',
-          color: '#1565c0',
+          backgroundColor: 'rgba(33, 150, 243, 0.1)',
+          color: '#64b5f6',
           padding: '15px',
           borderRadius: '8px',
           marginBottom: '20px',
           display: 'flex',
           alignItems: 'center',
-          gap: '10px'
+          gap: '10px',
+          border: '1px solid rgba(33, 150, 243, 0.3)'
         }}>
           <span style={{ fontSize: '20px' }}>📊</span>
           <div>
             <strong>Analysis In Progress</strong>
-            <div style={{ fontSize: '14px', marginTop: '5px' }}>{error}</div>
+            <div style={{ fontSize: '14px', marginTop: '5px', opacity: 0.9 }}>{error}</div>
           </div>
         </div>
       )}
@@ -121,12 +128,13 @@ const TeamAnalysis = ({ league }) => {
         <div className="empty-state" style={{
           textAlign: 'center',
           padding: '40px',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '8px'
+          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+          borderRadius: '8px',
+          border: '1px solid var(--border-color)'
         }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>📈</div>
-          <h3>No Analysis Data Available</h3>
-          <p>Team analysis will be available once the season progresses.</p>
+          <h3 style={{ color: 'var(--text-primary)' }}>No Analysis Data Available</h3>
+          <p style={{ color: 'var(--text-secondary)' }}>Team analysis will be available once the season progresses.</p>
         </div>
       )}
       
@@ -134,23 +142,36 @@ const TeamAnalysis = ({ league }) => {
         <>
           <div className="analysis-grid">
             <div className="analysis-card">
-              <h3>Overall Team Strength</h3>
-              <p className="metric-value">{teamAnalysis.overallStrength}/100</p>
+              <h3 style={{ color: 'var(--text-primary)' }}>Overall Team Strength</h3>
+              <p className="metric-value" style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent)' }}>
+                {Number(teamAnalysis.overallStrength).toFixed(0)}/100
+              </p>
             </div>
             
             <div className="analysis-card">
-              <h3>Injury Risk</h3>
-              <p className="metric-value">{teamAnalysis.injuryRisk.toFixed(1)}/10</p>
+              <h3 style={{ color: 'var(--text-primary)' }}>Injury Risk</h3>
+              <p className="metric-value" style={{ 
+                fontSize: '2rem', 
+                fontWeight: 'bold', 
+                color: Number(teamAnalysis.injuryRisk) > 7 ? '#f44336' : 
+                       Number(teamAnalysis.injuryRisk) > 4 ? '#ff9800' : '#4caf50' 
+              }}>
+                {Number(teamAnalysis.injuryRisk).toFixed(1)}/10
+              </p>
             </div>
             
             <div className="analysis-card">
-              <h3>Bench Quality</h3>
-              <p className="metric-value">{teamAnalysis.benchQuality}/100</p>
+              <h3 style={{ color: 'var(--text-primary)' }}>Bench Quality</h3>
+              <p className="metric-value" style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent)' }}>
+                {Number(teamAnalysis.benchQuality).toFixed(0)}/100
+              </p>
             </div>
             
             <div className="analysis-card">
-              <h3>Starters Performance</h3>
-              <p className="metric-value">{teamAnalysis.startersPerformance.toFixed(1)} pts</p>
+              <h3 style={{ color: 'var(--text-primary)' }}>Starters Performance</h3>
+              <p className="metric-value" style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent)' }}>
+                {Number(teamAnalysis.startersPerformance).toFixed(1)} pts
+              </p>
             </div>
           </div>
           
@@ -173,21 +194,38 @@ const TeamAnalysis = ({ league }) => {
           </div>
           
           <div className="analysis-card">
-            <h2>Positional Depth</h2>
-            <table>
+            <h2 style={{ color: 'var(--text-primary)' }}>Positional Depth</h2>
+            <table style={{ width: '100%', color: 'var(--text-primary)' }}>
               <thead>
-                <tr>
-                  <th>Position</th>
-                  <th>Player Count</th>
-                  <th>Depth Quality</th>
+                <tr style={{ borderBottom: '2px solid var(--border-color)' }}>
+                  <th style={{ padding: '10px', textAlign: 'left' }}>Position</th>
+                  <th style={{ padding: '10px', textAlign: 'left' }}>Player Count</th>
+                  <th style={{ padding: '10px', textAlign: 'left' }}>Depth Quality</th>
                 </tr>
               </thead>
               <tbody>
                 {Object.entries(teamAnalysis.positionalDepth || {}).map(([position, depth]) => (
-                  <tr key={position}>
-                    <td>{position}</td>
-                    <td>{depth.count}</td>
-                    <td>{depth.quality}</td>
+                  <tr key={position} style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                    <td style={{ padding: '10px' }}>{position}</td>
+                    <td style={{ padding: '10px' }}>{depth.count}</td>
+                    <td>
+                      <span style={{
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        backgroundColor: 
+                          depth.quality === 'EXCELLENT' ? '#4caf50' :
+                          depth.quality === 'GOOD' ? '#8bc34a' :
+                          depth.quality === 'FAIR' ? '#ffeb3b' :
+                          depth.quality === 'POOR' ? '#ff9800' :
+                          depth.quality === 'CRITICAL' ? '#f44336' : '#9e9e9e',
+                        color: 
+                          depth.quality === 'FAIR' ? '#333' : 'white'
+                      }}>
+                        {depth.quality}
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>

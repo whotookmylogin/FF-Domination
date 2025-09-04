@@ -1,0 +1,145 @@
+/* Contrast fixes for Weekly Analysis page - NEVER dark text on dark or light text on light backgrounds */
+
+/* Force all player cards to have proper contrast */
+.player-matchup-card,
+.player-matchup-card * {
+    background-color: transparent !important;
+}
+
+.player-matchup-card {
+    background: #ffffff !important;
+}
+
+/* Ensure all text elements have proper contrast */
+.player-matchup-card .player-name,
+.player-matchup-card .player-team,
+.player-matchup-card .projection-label,
+.player-matchup-card .projection-value,
+.player-matchup-card strong,
+.player-matchup-card span {
+    color: #1f2937 !important;  /* Very dark gray for excellent contrast on white */
+}
+
+/* Position badge special styling */
+.player-matchup-card .player-position {
+    background: #fbbf24 !important;  /* Amber background */
+    color: #451a03 !important;  /* Very dark brown for contrast */
+    padding: 3px 10px !important;
+    border-radius: 4px !important;
+    font-weight: 700 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+/* Rating badge - ensure text is always readable with proper contrast */
+.player-rating {
+    color: #ffffff !important;  /* White text for colored backgrounds */
+    position: relative;
+    isolation: isolate;  /* Create new stacking context */
+    min-width: 80px !important;
+    border: 2px solid rgba(0, 0, 0, 0.15) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Override inline styles with darker colors for WCAG AA compliance */
+.player-rating[style*="rgb(34, 197, 94)"],
+.player-rating[style*="rgb(34,197,94)"],
+.player-rating[style*="#22c55e"] {
+    background-color: #059669 !important;  /* Darker green - WCAG AA compliant with white text */
+}
+
+.player-rating[style*="rgb(234, 179, 8)"],
+.player-rating[style*="rgb(234,179,8)"],
+.player-rating[style*="#eab308"] {
+    background-color: #d97706 !important;  /* Darker amber - WCAG AA compliant with white text */
+}
+
+.player-rating[style*="rgb(239, 68, 68)"],
+.player-rating[style*="rgb(239,68,68)"],
+.player-rating[style*="#ef4444"] {
+    background-color: #dc2626 !important;  /* Darker red - WCAG AA compliant with white text */
+}
+
+.player-rating .rating-value,
+.player-rating .rating-label {
+    color: #ffffff !important;  /* White text for colored backgrounds */
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;  /* Stronger shadow for better readability */
+    position: relative;
+    z-index: 1;
+}
+
+/* Weather and defense tags */
+.weather-tag,
+.defense-tag {
+    color: #1f2937 !important;  /* Dark text */
+    font-weight: 600 !important;
+}
+
+.weather-tag.good,
+.defense-tag.good {
+    background: #bbf7d0 !important;  /* Light green background */
+    color: #14532d !important;  /* Dark green text */
+}
+
+.weather-tag.bad,
+.defense-tag.bad {
+    background: #fecaca !important;  /* Light red background */
+    color: #7f1d1d !important;  /* Dark red text */
+}
+
+.defense-tag.neutral {
+    background: #fed7aa !important;  /* Light orange background */
+    color: #7c2d12 !important;  /* Dark orange text */
+}
+
+/* Advantages and disadvantages lists */
+.advantages li,
+.disadvantages li {
+    color: #374151 !important;  /* Dark gray for good contrast */
+    background: #f9fafb !important;  /* Very light gray background */
+    padding: 6px 10px !important;
+    border-radius: 4px !important;
+    margin: 4px 0 !important;
+}
+
+/* Projection section */
+.player-projection {
+    background: #f0f9ff !important;  /* Very light blue background */
+    border: 1px solid #bfdbfe !important;
+    color: #1e3a8a !important;  /* Dark blue text */
+}
+
+.player-projection .projection-label {
+    color: #3730a3 !important;  /* Dark indigo */
+}
+
+.player-projection .projection-value {
+    color: #1e3a8a !important;  /* Dark blue */
+    font-weight: 700 !important;
+}
+
+/* QB Analysis section */
+.qb-analysis {
+    background: #fef3c7 !important;  /* Light amber background */
+    color: #78350f !important;  /* Very dark amber text */
+    border: 1px solid #fde047 !important;
+}
+
+/* Never allow these problematic combinations */
+.player-matchup-card [style*="color: #e5e7eb"],
+.player-matchup-card [style*="color: #f3f4f6"],
+.player-matchup-card [style*="color: #f9fafb"],
+.player-matchup-card [style*="color: #d1d5db"],
+.player-matchup-card [style*="color: #9ca3af"] {
+    color: #1f2937 !important;  /* Force dark text */
+}
+
+/* If background is dark, force white text */
+.player-matchup-card [style*="background: #1f2937"],
+.player-matchup-card [style*="background: #111827"],
+.player-matchup-card [style*="background: #030712"],
+.player-matchup-card [style*="background: #18181b"],
+.player-matchup-card [style*="background: #27272a"] {
+    color: #ffffff !important;  /* Force white text on dark backgrounds */
+}

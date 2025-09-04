@@ -105,10 +105,11 @@ class EnhancedWaiverAnalyzer:
         """
         data = {}
         
-        # Get user's roster
-        if platform == "espn":
+        # Get user's roster (handle case-insensitive platform names)
+        platform_lower = platform.lower() if platform else ""
+        if platform_lower == "espn":
             roster_data = await self._get_espn_roster(league_id, team_id)
-        elif platform == "sleeper":
+        elif platform_lower == "sleeper":
             roster_data = await self._get_sleeper_roster(league_id, team_id)
         else:
             roster_data = {"players": []}
@@ -157,13 +158,19 @@ class EnhancedWaiverAnalyzer:
         # Count players by position
         position_counts = {"QB": [], "RB": [], "WR": [], "TE": [], "K": [], "DEF": []}
         
+        print(f"DEBUG: Analyzing roster with {len(roster)} players")
         for player in roster:
             pos = player.get("position")
+            print(f"DEBUG: Player {player.get('name', 'Unknown')} has position {pos}")
             # Handle D/ST as DEF for ESPN compatibility
             if pos == "D/ST":
                 pos = "DEF"
             if pos in position_counts:
                 position_counts[pos].append(player)
+        
+        print(f"DEBUG: Position counts after processing:")
+        for pos, players in position_counts.items():
+            print(f"  {pos}: {len(players)} players")
         
         # Analyze each position
         for position, players in position_counts.items():
@@ -312,6 +319,20 @@ class EnhancedWaiverAnalyzer:
         """
         position = player.get("position")
         player_points = player.get("projected_points", 0)
+        injury_status = player.get("injury_status", "ACTIVE")
+        
+        # Never recommend injured players
+        if injury_status in ['IR', 'OUT', 'SUSPENDED']:
+            return {
+                "should_add": False,
+                "priority": RecommendationPriority.LOW,
+                "type": "injured",
+                "reasoning": f"Player is {injury_status} - not available",
+                "confidence": 0,
+                "impact": {"points_added": 0, "need_filled": False},
+                "timeline": "unavailable",
+                "drop_candidate": None
+            }
         
         # Find comparable players on roster (handle D/ST as DEF)
         compare_position = "DEF" if position == "D/ST" else position
@@ -441,34 +462,70 @@ class EnhancedWaiverAnalyzer:
         # Sort by projected points (ascending) to find worst players
         sorted_roster = sorted(roster, key=lambda x: x.get("projected_points", 0))
         
-        # Prefer dropping players from deep positions
+        # Count players by position
         position_counts = {}
         for player in roster:
             pos = player.get("position")
+            # Normalize D/ST to DEF
+            if pos == "D/ST":
+                pos = "DEF"
             position_counts[pos] = position_counts.get(pos, 0) + 1
         
-        # Find droppable players
+        # Define minimum required players per position
+        min_required = {
+            "QB": 1,
+            "RB": 2,
+            "WR": 2,
+            "TE": 1,
+            "K": 1,
+            "DEF": 1
+        }
+        
+        # If adding a player at a position we're already deep at,
+        # prefer dropping from the same position
+        if needed_position and position_counts.get(needed_position, 0) >= min_required.get(needed_position, 1) + 1:
+            same_position_players = [p for p in sorted_roster if p.get("position") == needed_position]
+            if same_position_players:
+                return {
+                    "player_id": same_position_players[0].get("player_id"),
+                    "name": same_position_players[0].get("name"),
+                    "position": same_position_players[0].get("position"),
+                    "projected_points": same_position_players[0].get("projected_points", 0)
+                }
+        
+        # Find droppable players (don't drop below minimum requirements)
         for player in sorted_roster:
             pos = player.get("position")
-            # Don't drop if it's the only player at that position
-            if position_counts.get(pos, 0) > 1:
-                # Don't drop QBs or TEs unless we have 2+
-                if pos in ["QB", "TE"] and position_counts[pos] < 2:
-                    continue
+            # Normalize D/ST to DEF
+            if pos == "D/ST":
+                pos = "DEF"
+                
+            # Check if we can drop this player without going below minimum
+            current_count = position_counts.get(pos, 0)
+            min_count = min_required.get(pos, 1)
+            
+            if current_count > min_count:
                 return {
                     "player_id": player.get("player_id"),
                     "name": player.get("name"),
-                    "position": pos,
+                    "position": player.get("position"),
                     "projected_points": player.get("projected_points", 0)
                 }
         
-        # If no good candidate found, return worst bench player
-        return {
-            "player_id": sorted_roster[0].get("player_id"),
-            "name": sorted_roster[0].get("name"),
-            "position": sorted_roster[0].get("position"),
-            "projected_points": sorted_roster[0].get("projected_points", 0)
-        } if sorted_roster else None
+        # If no good candidate found, return worst bench player (likely at deepest position)
+        deepest_positions = sorted(position_counts.items(), key=lambda x: x[1], reverse=True)
+        for pos, count in deepest_positions:
+            if count > min_required.get(pos, 1):
+                candidates = [p for p in sorted_roster if p.get("position") == pos]
+                if candidates:
+                    return {
+                        "player_id": candidates[0].get("player_id"),
+                        "name": candidates[0].get("name"),
+                        "position": candidates[0].get("position"),
+                        "projected_points": candidates[0].get("projected_points", 0)
+                    }
+        
+        return None  # Can't drop anyone without going below minimums
     
     def _check_bye_weeks(self, roster_data: Dict, current_week: int) -> List[Dict]:
         """
@@ -556,28 +613,56 @@ class EnhancedWaiverAnalyzer:
     async def _get_espn_roster(self, league_id: str, team_id: str) -> Dict[str, Any]:
         """Fetch ESPN roster data"""
         print(f"DEBUG: Fetching roster for team_id={team_id}, league_id={league_id}")
+        
+        if not self.platform_service:
+            print(f"DEBUG: No platform service available, using mock data")
+            return self._get_mock_roster(team_id)
+            
         try:
-            if self.platform_service:
-                # Get roster data from platform service
-                roster_data = self.platform_service.get_roster_data("espn", team_id)
-                print(f"DEBUG: Got roster_data: {roster_data}")
-                if roster_data and roster_data.get('status') == 'success':
-                    # Extract the actual roster from the response
-                    data = roster_data.get('data', {})
-                    if isinstance(data, dict) and 'data' in data:
-                        players = data['data']
-                    else:
-                        players = data if isinstance(data, list) else []
-                    
-                    print(f"DEBUG: Extracted {len(players) if isinstance(players, list) else 0} players")
-                    # Return formatted roster
-                    return {"players": players if isinstance(players, list) else []}
+            # Use the platform service's get_roster_data method which handles ESPN properly
+            roster_response = self.platform_service.get_roster_data("espn", team_id)
+            print(f"DEBUG: Got roster_response type: {type(roster_response)}, keys: {roster_response.keys() if isinstance(roster_response, dict) else 'not a dict'}")
+            
+            if isinstance(roster_response, dict):
+                # Handle the response structure from platform_service
+                if "status" in roster_response and roster_response["status"] == "success":
+                    roster_data = roster_response.get("data", [])
+                elif "data" in roster_response:
+                    roster_data = roster_response["data"]
                 else:
-                    print(f"DEBUG: Roster fetch failed or returned non-success status")
+                    roster_data = []
+                
+                # roster_data should be a list of player dicts
+                if isinstance(roster_data, list):
+                    print(f"DEBUG: Extracted {len(roster_data)} players from platform service")
+                    # Ensure we have the expected structure
+                    formatted_players = []
+                    for player in roster_data:
+                        if isinstance(player, dict):
+                            formatted_players.append({
+                                "name": player.get("name", "Unknown"),
+                                "position": player.get("position", ""),
+                                "team": player.get("team", ""),
+                                "projected_points": player.get("projected_points", 0),
+                                "status": player.get("status", "Active"),
+                                "injury_status": player.get("injury_status", "ACTIVE")
+                            })
+                    print(f"DEBUG: Formatted {len(formatted_players)} players")
+                    return {"players": formatted_players}
+                else:
+                    print(f"DEBUG: Unexpected roster_data type: {type(roster_data)}")
+                    return {"players": []}
+            else:
+                print(f"DEBUG: Platform service returned non-dict: {type(roster_response)}")
+                return {"players": []}
                     
         except Exception as e:
             print(f"Error fetching ESPN roster: {e}")
-        
+            # Return mock data as fallback
+            return self._get_mock_roster(team_id)
+    
+    def _get_mock_roster(self, team_id: str) -> Dict[str, Any]:
+        """Get mock roster data for testing"""
         # Return mock roster for Team 7 (Trashy McTrash-Face)
         print(f"DEBUG: Using mock roster for team {team_id}")
         if team_id == "7":
@@ -606,18 +691,58 @@ class EnhancedWaiverAnalyzer:
     
     async def _get_available_players(self, league_id: str, platform: str) -> List[Dict]:
         """Get available free agents/waiver players"""
-        # Return mock waiver wire players for now
+        
+        # Try to get real data from ESPN
+        if platform == "espn" and self.platform_service:
+            try:
+                from src.platforms.espn_api_integration import ESPNAPIIntegration
+                
+                # Initialize ESPN service if needed
+                if not hasattr(self.platform_service, 'espn_service') or not self.platform_service.espn_service:
+                    import os
+                    espn_s2 = os.getenv("ESPN_S2")
+                    espn_swid = os.getenv("ESPN_SWID")
+                    year = int(os.getenv("ESPN_SEASON_YEAR", "2025"))
+                    
+                    if espn_s2 and espn_swid:
+                        espn_service = ESPNAPIIntegration(
+                            league_id=league_id,
+                            year=year,
+                            espn_s2=espn_s2,
+                            swid=espn_swid
+                        )
+                        self.platform_service.espn_service = espn_service
+                
+                if hasattr(self.platform_service, 'espn_service') and self.platform_service.espn_service:
+                    # Get free agents from ESPN
+                    free_agents = self.platform_service.espn_service.get_free_agents(size=50)
+                    if free_agents:
+                        # Filter out injured players (IR, OUT)
+                        return [
+                            player for player in free_agents
+                            if player.get('injury_status') not in ['IR', 'OUT', 'SUSPENDED']
+                        ]
+            except Exception as e:
+                print(f"DEBUG: Could not get real free agents: {e}")
+        
+        # Return mock waiver wire players with injury status
+        mock_players = [
+            {"name": "Tank Dell", "position": "WR", "team": "HOU", "projected_points": 0, "percent_owned": 45, "injury_status": "IR"},  # On IR
+            {"name": "Zay Flowers", "position": "WR", "team": "BAL", "projected_points": 10.8, "percent_owned": 52, "injury_status": "ACTIVE"},
+            {"name": "Jaylen Warren", "position": "RB", "team": "PIT", "projected_points": 9.5, "percent_owned": 38, "injury_status": "ACTIVE"},
+            {"name": "Tyjae Spears", "position": "RB", "team": "TEN", "projected_points": 8.9, "percent_owned": 41, "injury_status": "ACTIVE"},
+            {"name": "Dalton Kincaid", "position": "TE", "team": "BUF", "projected_points": 8.3, "percent_owned": 48, "injury_status": "ACTIVE"},
+            {"name": "Sam Howell", "position": "QB", "team": "WAS", "projected_points": 16.8, "percent_owned": 12, "injury_status": "ACTIVE"},
+            {"name": "Joshua Palmer", "position": "WR", "team": "LAC", "projected_points": 9.1, "percent_owned": 28, "injury_status": "ACTIVE"},
+            {"name": "Roschon Johnson", "position": "RB", "team": "CHI", "projected_points": 7.8, "percent_owned": 22, "injury_status": "ACTIVE"},
+            {"name": "Greg Dortch", "position": "WR", "team": "ARI", "projected_points": 8.4, "percent_owned": 18, "injury_status": "ACTIVE"},
+            {"name": "Jake Ferguson", "position": "TE", "team": "DAL", "projected_points": 7.2, "percent_owned": 31, "injury_status": "ACTIVE"}
+        ]
+        
+        # Filter out injured players from mock data too
         return [
-            {"name": "Tank Dell", "position": "WR", "team": "HOU", "projected_points": 11.2, "percent_owned": 45},
-            {"name": "Zay Flowers", "position": "WR", "team": "BAL", "projected_points": 10.8, "percent_owned": 52},
-            {"name": "Jaylen Warren", "position": "RB", "team": "PIT", "projected_points": 9.5, "percent_owned": 38},
-            {"name": "Tyjae Spears", "position": "RB", "team": "TEN", "projected_points": 8.9, "percent_owned": 41},
-            {"name": "Dalton Kincaid", "position": "TE", "team": "BUF", "projected_points": 8.3, "percent_owned": 48},
-            {"name": "Sam Howell", "position": "QB", "team": "WAS", "projected_points": 16.8, "percent_owned": 12},
-            {"name": "Joshua Palmer", "position": "WR", "team": "LAC", "projected_points": 9.1, "percent_owned": 28},
-            {"name": "Roschon Johnson", "position": "RB", "team": "CHI", "projected_points": 7.8, "percent_owned": 22},
-            {"name": "Greg Dortch", "position": "WR", "team": "ARI", "projected_points": 8.4, "percent_owned": 18},
-            {"name": "Jake Ferguson", "position": "TE", "team": "DAL", "projected_points": 7.2, "percent_owned": 31}
+            player for player in mock_players
+            if player.get('injury_status') not in ['IR', 'OUT', 'SUSPENDED']
         ]
     
     async def _get_upcoming_schedule(

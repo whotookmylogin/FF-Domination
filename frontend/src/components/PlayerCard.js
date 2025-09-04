@@ -24,21 +24,21 @@ const PlayerCard = ({
    */
   const getPlayerImageUrl = (player) => {
     if (imageError) {
-      return `https://ui-avatars.com/api/?name=${encodeURIComponent(player.name)}&background=2d3748&color=ffffff&size=120&font-size=0.4`;
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(player.name || 'Player')}&background=2d3748&color=ffffff&size=120&font-size=0.4`;
     }
     
-    // Try ESPN first (most reliable)
-    if (player.espn_id) {
+    // Skip invalid ESPN IDs (negative numbers or special values)
+    if (player.espn_id && player.espn_id > 0) {
       return `https://a.espncdn.com/i/headshots/nfl/players/full/${player.espn_id}.png`;
     }
     
-    // Fallback to Fantasy Nerds
-    if (player.player_id) {
+    // Skip invalid player IDs
+    if (player.player_id && player.player_id > 0) {
       return `https://www.fantasynerds.com/images/nfl/players_medium/${player.player_id}.png`;
     }
     
     // Final fallback to generated avatar
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(player.name)}&background=2d3748&color=ffffff&size=120&font-size=0.4`;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(player.name || 'Player')}&background=2d3748&color=ffffff&size=120&font-size=0.4`;
   };
 
   /**

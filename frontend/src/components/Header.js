@@ -1,13 +1,217 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faBell, faCog, faChevronDown, faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { 
+  faUser, 
+  faBell, 
+  faCog, 
+  faChevronDown, 
+  faBars, 
+  faTimes,
+  faExclamationTriangle,
+  faInfoCircle,
+  faNewspaper,
+  faUserInjured,
+  faExchangeAlt,
+  faTimes as faTimesCircle,
+  faSpinner
+} from '@fortawesome/free-solid-svg-icons';
+import { 
+  getNotifications, 
+  markNotificationAsRead, 
+  deleteNotification, 
+  clearAllNotifications,
+  checkBreakingNewsForRoster 
+} from '../services/api.js';
 import './Header.css';
 
 const Header = ({ user, selectedLeague, leagues, onLeagueChange, onMenuToggle, isMobileMenuOpen }) => {
+  // UI state
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showLeagueDropdown, setShowLeagueDropdown] = useState(false);
+  
+  // Notification state
+  const [notifications, setNotifications] = useState([]);
+  const [notificationLoading, setNotificationLoading] = useState(false);
+  const [notificationError, setNotificationError] = useState(null);
+
+  /**
+   * Get appropriate icon for notification type
+   * @param {string} type - Notification type
+   * @returns {Object} FontAwesome icon
+   */
+  const getNotificationIcon = (type) => {
+    switch (type?.toLowerCase()) {
+      case 'injury':
+        return faUserInjured;
+      case 'waiver':
+      case 'waivers':
+        return faExchangeAlt;
+      case 'news':
+        return faNewspaper;
+      case 'warning':
+        return faExclamationTriangle;
+      case 'trade':
+        return faExchangeAlt;
+      default:
+        return faInfoCircle;
+    }
+  };
+
+  /**
+   * Fetch notifications from API
+   */
+  const fetchNotifications = useCallback(async () => {
+    if (!user?.id) return;
+    
+    setNotificationLoading(true);
+    setNotificationError(null);
+    
+    try {
+      const response = await getNotifications(user.id);
+      // Handle different response structures
+      const notificationData = response.notifications || response.data || response || [];
+      // Ensure it's always an array
+      setNotifications(Array.isArray(notificationData) ? notificationData : []);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      setNotificationError('Failed to load notifications');
+      setNotifications([]);
+    } finally {
+      setNotificationLoading(false);
+    }
+  }, [user?.id]);
+
+  /**
+   * Mark individual notification as read
+   * @param {string} notificationId - ID of notification to mark as read
+   */
+  const handleMarkAsRead = useCallback(async (notificationId) => {
+    try {
+      await markNotificationAsRead(notificationId);
+      // Update local state
+      setNotifications(prev => 
+        prev.map(notification => 
+          notification.id === notificationId 
+            ? { ...notification, read: true, unread: false }
+            : notification
+        )
+      );
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      setNotificationError('Failed to mark notification as read');
+    }
+  }, []);
+
+  /**
+   * Delete individual notification
+   * @param {string} notificationId - ID of notification to delete
+   */
+  const handleDeleteNotification = useCallback(async (notificationId) => {
+    try {
+      await deleteNotification(notificationId);
+      // Remove from local state
+      setNotifications(prev => prev.filter(notification => notification.id !== notificationId));
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      setNotificationError('Failed to delete notification');
+    }
+  }, []);
+
+  /**
+   * Mark all notifications as read
+   */
+  const handleMarkAllAsRead = useCallback(async () => {
+    if (!user?.id) return;
+    
+    try {
+      await clearAllNotifications(user.id);
+      // Update local state
+      setNotifications(prev => 
+        prev.map(notification => ({ ...notification, read: true, unread: false }))
+      );
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      setNotificationError('Failed to mark all notifications as read');
+    }
+  }, [user?.id]);
+
+  /**
+   * Format notification time for display
+   * @param {string|Date} timestamp - Notification timestamp
+   * @returns {string} Formatted time string
+   */
+  const formatNotificationTime = (timestamp) => {
+    if (!timestamp) return '';
+    
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}d ago`;
+    
+    return date.toLocaleDateString();
+  };
+
+  // Fetch notifications on component mount and user change
+  useEffect(() => {
+    if (user?.id) {
+      fetchNotifications();
+    }
+  }, [user?.id, fetchNotifications]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Check for breaking news related to roster
+  const checkBreakingNews = useCallback(async () => {
+    if (!user?.id || !selectedLeague) return;
+    
+    try {
+      const response = await checkBreakingNewsForRoster(user.id, {
+        league_id: selectedLeague.id,
+        team_id: selectedLeague.team_id || selectedLeague.teamId,
+        platform: selectedLeague.platform || 'espn'
+      });
+      
+      // If new notifications were created, refresh the notification list
+      if (response.notifications_created > 0) {
+        fetchNotifications();
+      }
+    } catch (error) {
+      console.error('Error checking breaking news:', error);
+    }
+  }, [user?.id, selectedLeague, fetchNotifications]);
+
+  // Auto-refresh notifications every 30 seconds
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    const interval = setInterval(() => {
+      fetchNotifications();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [user?.id, fetchNotifications]); // eslint-disable-line react-hooks/exhaustive-deps
+  
+  // Check for breaking news every 2 minutes
+  useEffect(() => {
+    if (!user?.id || !selectedLeague) return;
+    
+    // Initial check
+    checkBreakingNews();
+    
+    const interval = setInterval(() => {
+      checkBreakingNews();
+    }, 120000); // 2 minutes
+
+    return () => clearInterval(interval);
+  }, [user?.id, selectedLeague, checkBreakingNews]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleNotificationClick = () => {
     setShowNotifications(!showNotifications);
@@ -37,66 +241,10 @@ const Header = ({ user, selectedLeague, leagues, onLeagueChange, onMenuToggle, i
     setShowProfile(false);
   };
 
-  // Real notifications based on selected league
-  const getLeagueNotifications = () => {
-    if (!selectedLeague) return [];
-    
-    const baseNotifications = [];
-    
-    if (selectedLeague.platform === 'ESPN') {
-      baseNotifications.push(
-        {
-          id: 1,
-          type: 'league',
-          message: `New season started in ${selectedLeague.name}`,
-          time: 'Today',
-          unread: true
-        },
-        {
-          id: 2,
-          type: 'roster',
-          message: 'Your roster is set for Week 1',
-          time: '1 day ago',
-          unread: false
-        }
-      );
-    }
-    
-    if (selectedLeague.platform === 'Sleeper') {
-      baseNotifications.push(
-        {
-          id: 3,
-          type: 'league',
-          message: `Welcome to ${selectedLeague.name} league`,
-          time: 'Today',
-          unread: true
-        },
-        {
-          id: 4,
-          type: 'draft',
-          message: 'Draft date set for your Sleeper league',
-          time: '2 days ago',
-          unread: false
-        }
-      );
-    }
-    
-    // Add generic notifications
-    baseNotifications.push(
-      {
-        id: 5,
-        type: 'system',
-        message: 'Fantasy Football app updated to 2025 season',
-        time: '3 days ago',
-        unread: false
-      }
-    );
-    
-    return baseNotifications;
-  };
-  
-  const notifications = getLeagueNotifications();
-  const unreadCount = notifications.filter(n => n.unread).length;
+  // Calculate unread count from API notifications (ensure notifications is an array)
+  const unreadCount = Array.isArray(notifications) 
+    ? notifications.filter(n => !n.read && n.unread !== false).length 
+    : 0;
 
   return (
     <header className="header">
@@ -150,24 +298,98 @@ const Header = ({ user, selectedLeague, leagues, onLeagueChange, onMenuToggle, i
                 <div className="dropdown-menu notifications-menu">
                   <div className="dropdown-header">
                     <h3>Notifications</h3>
-                    <button className="mark-all-read">Mark all as read</button>
+                    {Array.isArray(notifications) && notifications.length > 0 && unreadCount > 0 && (
+                      <button 
+                        className="mark-all-read"
+                        onClick={handleMarkAllAsRead}
+                      >
+                        Mark all as read
+                      </button>
+                    )}
                   </div>
                   <div className="dropdown-content">
-                    {notifications.length > 0 ? notifications.map(notification => (
-                      <div key={notification.id} className={`notification-item ${notification.unread ? 'unread' : ''}`}>
-                        <div className="notification-type">{notification.type}</div>
-                        <div className="notification-message">{notification.message}</div>
-                        <div className="notification-time">{notification.time}</div>
+                    {notificationLoading ? (
+                      <div className="notification-loading">
+                        <FontAwesomeIcon icon={faSpinner} spin />
+                        <span>Loading notifications...</span>
                       </div>
-                    )) : (
+                    ) : notificationError ? (
+                      <div className="notification-error">
+                        <FontAwesomeIcon icon={faExclamationTriangle} />
+                        <span>{notificationError}</span>
+                        <button onClick={fetchNotifications} className="retry-btn">
+                          Retry
+                        </button>
+                      </div>
+                    ) : Array.isArray(notifications) && notifications.length > 0 ? (
+                      notifications.map(notification => (
+                        <div 
+                          key={notification.id} 
+                          className={`notification-item ${!notification.read && notification.unread !== false ? 'unread' : ''}`}
+                          onClick={() => !notification.read && handleMarkAsRead(notification.id)}
+                        >
+                          <div className="notification-icon">
+                            <FontAwesomeIcon icon={getNotificationIcon(notification.type)} />
+                          </div>
+                          <div className="notification-content">
+                            <div className="notification-header">
+                              {notification.title && (
+                                <div className="notification-title">{notification.title}</div>
+                              )}
+                              <div className="notification-type">{notification.type || 'Info'}</div>
+                            </div>
+                            <div className="notification-message">
+                              {notification.message || notification.content || 'No message'}
+                            </div>
+                            {notification.url && (
+                              <a 
+                                href={notification.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="notification-link"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                Read Article →
+                              </a>
+                            )}
+                            <div className="notification-time">
+                              {formatNotificationTime(notification.timestamp || notification.created_at || notification.time)}
+                            </div>
+                          </div>
+                          <div className="notification-actions">
+                            <button 
+                              className="delete-notification"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteNotification(notification.id);
+                              }}
+                              title="Delete notification"
+                            >
+                              <FontAwesomeIcon icon={faTimesCircle} />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
                       <div className="no-notifications">
+                        <FontAwesomeIcon icon={faBell} />
                         <p>No new notifications</p>
                       </div>
                     )}
                   </div>
-                  <div className="dropdown-footer">
-                    <button className="view-all-btn">View All Notifications</button>
-                  </div>
+                  {Array.isArray(notifications) && notifications.length > 0 && (
+                    <div className="dropdown-footer">
+                      <button 
+                        className="view-all-btn"
+                        onClick={() => {
+                          // TODO: Implement view all notifications page
+                          console.log('View all notifications');
+                        }}
+                      >
+                        View All Notifications
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

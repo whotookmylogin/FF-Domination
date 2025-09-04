@@ -133,6 +133,95 @@
   font-size: var(--font-size-lg);
 }
 
+/* ==================== TRADE SUGGESTIONS ==================== */
+.trade-suggestions-section {
+  background: var(--bg-card);
+}
+
+.trade-suggestions-container {
+  margin-top: var(--space-4);
+}
+
+.trade-suggestions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.loading-spinner-sm {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-color);
+  border-top-color: var(--primary-brand);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-placeholder {
+  text-align: center;
+  padding: var(--space-8);
+  background: var(--bg-secondary);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--border-radius-lg);
+  color: var(--text-secondary);
+}
+
+.no-suggestions {
+  text-align: center;
+  padding: var(--space-8);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  color: var(--text-secondary);
+}
+
+.no-suggestions p {
+  margin-bottom: var(--space-2);
+}
+
+.no-suggestions p:last-child {
+  margin-bottom: 0;
+}
+
+.view-more-trades {
+  text-align: center;
+  margin-top: var(--space-4);
+}
+
+.view-more-trades .btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--border-radius-md);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-normal);
+}
+
+.view-more-trades .btn:hover {
+  background: var(--primary-brand);
+  color: white;
+  border-color: var(--primary-brand);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* ==================== QUICK ACTIONS ==================== */
 .quick-actions {
   background: var(--bg-card);
@@ -235,6 +324,11 @@
     gap: var(--space-3);
   }
   
+  .trade-suggestions-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+  }
+  
   .actions-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-3);
@@ -256,6 +350,11 @@
   .roster-positions {
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-2);
+  }
+  
+  .trade-suggestions-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
   }
   
   .actions-grid {

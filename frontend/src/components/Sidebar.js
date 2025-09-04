@@ -70,11 +70,6 @@ const Sidebar = ({ leagues, selectedLeague, onLeagueChange, isOpen, onClose }) =
             <span className="section-title">👥 Team Management</span>
           </li>
           <li className="nav-item">
-            <Link to="/team-import" className="nav-link import-link" onClick={handleNavClick}>
-              ⚡ Import Team
-            </Link>
-          </li>
-          <li className="nav-item">
             <Link to="/team-rosters" className="nav-link roster-link" onClick={handleNavClick}>
               🏈 My Roster
             </Link>
@@ -107,6 +102,11 @@ const Sidebar = ({ leagues, selectedLeague, onLeagueChange, isOpen, onClose }) =
           {/* League Information */}
           <li className="nav-section-header">
             <span className="section-title">🏆 League</span>
+          </li>
+          <li className="nav-item">
+            <Link to="/weekly-analysis" className="nav-link weekly-link" onClick={handleNavClick}>
+              ⚔️ Weekly Matchup Analysis
+            </Link>
           </li>
           <li className="nav-item">
             <Link to="/expert-draft-tool" className="nav-link expert-link" onClick={handleNavClick}>

@@ -1,0 +1,511 @@
+/* ===============================================
+   GLOBAL CONTRAST FIX
+   Enforces proper contrast across the entire application
+   This overrides any problematic color combinations
+   =============================================== */
+
+/* CRITICAL: Force light backgrounds with dark text everywhere */
+* {
+  /* Ensure text is always readable */
+  color: inherit;
+}
+
+/* ==================== GLOBAL OVERRIDES ==================== */
+
+/* Force all primary text to be white on dark backgrounds */
+body,
+.app,
+.main-container {
+  background: #0f1419 !important; /* Dark background */
+  color: #ffffff !important; /* White text */
+}
+
+/* All card backgrounds should be slightly lighter with white text */
+.team-overview-card,
+.position-section,
+.team-card,
+.player-card,
+.news-card,
+.waiver-card,
+.trade-card,
+.card,
+[class*="card"] {
+  background: #1a202c !important; /* Slightly lighter dark */
+  color: #ffffff !important; /* White text */
+  border: 1px solid #2d3748 !important; /* Visible border */
+}
+
+/* Headers and titles must be white */
+h1, h2, h3, h4, h5, h6,
+.title,
+.heading,
+.team-name,
+.player-name,
+.position-title,
+[class*="title"],
+[class*="header"] h1,
+[class*="header"] h2,
+[class*="header"] h3,
+[class*="header"] h4 {
+  color: #ffffff !important;
+}
+
+/* Secondary text should be light gray (but readable) */
+.team-owner,
+.roster-summary,
+.player-team,
+.notification-time,
+.last-updated,
+.meta,
+.subtitle,
+[class*="secondary"],
+[class*="muted"] {
+  color: #a0aec0 !important; /* Light gray but readable */
+}
+
+/* ==================== TEAM ROSTERS SPECIFIC ==================== */
+
+.team-rosters-page {
+  background: #0f1419 !important;
+  color: #ffffff !important;
+}
+
+.view-toggle {
+  background: #1a202c !important;
+  border-color: #2d3748 !important;
+}
+
+.toggle-btn {
+  background: #2d3748 !important;
+  color: #ffffff !important;
+  border: 1px solid #4a5568 !important;
+}
+
+.toggle-btn:hover {
+  background: #353a42 !important;
+  color: #ffffff !important;
+}
+
+.toggle-btn.active {
+  background: linear-gradient(135deg, #00d4ff, #0099cc) !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.position-header {
+  border-bottom-color: #2d3748 !important;
+}
+
+.player-count {
+  background: #2d3748 !important;
+  color: #ffffff !important;
+}
+
+.team-stats span {
+  color: #a0aec0 !important;
+}
+
+.team-stats .record,
+.team-stats .points,
+.team-stats .players {
+  color: #00d4ff !important; /* Bright cyan for visibility */
+}
+
+.team-record {
+  color: #00d4ff !important;
+}
+
+.expand-btn {
+  background: #2d3748 !important;
+  color: #ffffff !important;
+  border-color: #4a5568 !important;
+}
+
+.expand-btn:hover {
+  background: #353a42 !important;
+  color: #ffffff !important;
+}
+
+/* ==================== NEWS FEED SPECIFIC ==================== */
+
+.news-controls {
+  background: #1a202c !important;
+  color: #ffffff !important;
+}
+
+.filter-buttons button {
+  background: #2d3748 !important;
+  color: #ffffff !important;
+  border: 1px solid #4a5568 !important;
+}
+
+.filter-buttons button:hover {
+  background: #353a42 !important;
+  color: #ffffff !important;
+}
+
+.filter-buttons button.active {
+  background: #00d4ff !important;
+  color: #0f1419 !important; /* Dark text on bright background */
+  border-color: #00d4ff !important;
+}
+
+.refresh-button {
+  background: #2d3748 !important;
+  color: #ffffff !important;
+  border: 1px solid #4a5568 !important;
+}
+
+.refresh-button:hover {
+  background: #353a42 !important;
+  color: #ffffff !important;
+}
+
+.news-card {
+  background: #1a202c !important;
+  color: #ffffff !important;
+}
+
+.news-header,
+.news-title {
+  color: #ffffff !important;
+}
+
+.tldr-content {
+  color: #e2e8f0 !important;
+  background: #2d3748 !important;
+  padding: 12px !important;
+  border-radius: 8px !important;
+}
+
+/* ==================== DASHBOARD SPECIFIC ==================== */
+
+.dashboard-card {
+  background: #1a202c !important;
+  color: #ffffff !important;
+}
+
+.stat-value {
+  color: #00d4ff !important;
+}
+
+.stat-label {
+  color: #a0aec0 !important;
+}
+
+/* ==================== WAIVER WIRE SPECIFIC ==================== */
+
+.waiver-controls {
+  background: #1a202c !important;
+  color: #ffffff !important;
+}
+
+.position-filter button,
+.sort-dropdown select {
+  background: #2d3748 !important;
+  color: #ffffff !important;
+  border: 1px solid #4a5568 !important;
+}
+
+.position-filter button:hover {
+  background: #353a42 !important;
+  color: #ffffff !important;
+}
+
+.position-filter button.active {
+  background: #00d4ff !important;
+  color: #0f1419 !important;
+}
+
+/* ==================== WEEKLY ANALYSIS SPECIFIC ==================== */
+
+.weekly-analysis-container {
+  background: #0f1419 !important;
+  color: #ffffff !important;
+}
+
+.analysis-card {
+  background: #1a202c !important;
+  color: #ffffff !important;
+}
+
+.matchup-header {
+  background: #2d3748 !important;
+  color: #ffffff !important;
+}
+
+.player-matchup-card {
+  background: #1a202c !important;
+  color: #ffffff !important;
+}
+
+.player-rating {
+  color: #ffffff !important;
+}
+
+.rating-value,
+.rating-label {
+  color: #ffffff !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Force dark enough backgrounds for rating badges */
+.player-rating[style*="background-color"] {
+  opacity: 0.9 !important;
+}
+
+/* ==================== TRADE SUGGESTIONS SPECIFIC ==================== */
+
+.trade-suggestion-card {
+  background: #1a202c !important;
+  color: #ffffff !important;
+}
+
+.trade-players {
+  background: #2d3748 !important;
+}
+
+.trade-arrow {
+  color: #00d4ff !important;
+}
+
+/* ==================== NOTIFICATIONS SPECIFIC ==================== */
+
+.notifications-menu,
+.dropdown-menu {
+  background: #1a202c !important;
+  color: #ffffff !important;
+  border: 1px solid #2d3748 !important;
+}
+
+.notification-item {
+  background: transparent !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid #2d3748 !important;
+}
+
+.notification-item:hover {
+  background: #2d3748 !important;
+}
+
+.notification-item.unread {
+  background: rgba(0, 212, 255, 0.1) !important;
+}
+
+.notification-title {
+  color: #ffffff !important;
+}
+
+.notification-message {
+  color: #e2e8f0 !important;
+}
+
+.notification-time {
+  color: #a0aec0 !important;
+}
+
+/* ==================== BUTTONS AND INPUTS ==================== */
+
+button:not(.active):not(:hover) {
+  background: #2d3748 !important;
+  color: #ffffff !important;
+  border: 1px solid #4a5568 !important;
+}
+
+button:hover {
+  background: #353a42 !important;
+  color: #ffffff !important;
+}
+
+input,
+textarea,
+select {
+  background: #2d3748 !important;
+  color: #ffffff !important;
+  border: 1px solid #4a5568 !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #718096 !important;
+}
+
+/* ==================== LINKS ==================== */
+
+a {
+  color: #00d4ff !important;
+}
+
+a:hover {
+  color: #33ddff !important;
+  text-decoration: underline;
+}
+
+/* ==================== TABLES ==================== */
+
+table {
+  background: #1a202c !important;
+  color: #ffffff !important;
+}
+
+th {
+  background: #2d3748 !important;
+  color: #ffffff !important;
+  border-color: #4a5568 !important;
+}
+
+td {
+  color: #ffffff !important;
+  border-color: #2d3748 !important;
+}
+
+tr:hover {
+  background: #2d3748 !important;
+}
+
+/* ==================== MODALS AND OVERLAYS ==================== */
+
+.modal,
+.overlay,
+[class*="modal"] {
+  background: #1a202c !important;
+  color: #ffffff !important;
+  border: 1px solid #2d3748 !important;
+}
+
+.modal-header {
+  background: #2d3748 !important;
+  color: #ffffff !important;
+}
+
+/* ==================== LOADING AND EMPTY STATES ==================== */
+
+.loading-state,
+.empty-state,
+.error-state {
+  background: #1a202c !important;
+  color: #ffffff !important;
+}
+
+.loading-text,
+.empty-message,
+.error-message {
+  color: #a0aec0 !important;
+}
+
+/* ==================== SIDEBAR ==================== */
+
+.sidebar {
+  background: #1a202c !important;
+  color: #ffffff !important;
+}
+
+.sidebar-link {
+  color: #a0aec0 !important;
+}
+
+.sidebar-link:hover {
+  background: #2d3748 !important;
+  color: #ffffff !important;
+}
+
+.sidebar-link.active {
+  background: #2d3748 !important;
+  color: #00d4ff !important;
+  border-left: 3px solid #00d4ff !important;
+}
+
+/* ==================== HEADER ==================== */
+
+.header {
+  background: #1a202c !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid #2d3748 !important;
+}
+
+.header-brand h1 {
+  color: #ffffff !important;
+}
+
+.league-selector-btn {
+  background: #2d3748 !important;
+  color: #ffffff !important;
+  border: 1px solid #4a5568 !important;
+}
+
+.league-dropdown-content {
+  background: #1a202c !important;
+  border: 1px solid #2d3748 !important;
+}
+
+.league-option {
+  color: #ffffff !important;
+}
+
+.league-option:hover {
+  background: #2d3748 !important;
+}
+
+/* ==================== SCROLLBARS ==================== */
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a202c !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4a5568 !important;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #718096 !important;
+}
+
+/* ==================== IMPORTANT OVERRIDES ==================== */
+
+/* Force readable text on any element that might have contrast issues */
+[style*="color: black"],
+[style*="color:#000"],
+[style*="color: #000"],
+[style*="color: rgb(0"],
+[style*="color:rgb(0"] {
+  color: #ffffff !important;
+}
+
+/* Force dark backgrounds to be properly dark */
+[style*="background: black"],
+[style*="background:#000"],
+[style*="background: #000"],
+[style*="background: rgb(0"],
+[style*="background:rgb(0"],
+[style*="background-color: black"],
+[style*="background-color:#000"],
+[style*="background-color: #000"],
+[style*="background-color: rgb(0"],
+[style*="background-color:rgb(0"] {
+  background-color: #1a202c !important;
+}
+
+/* Ensure no element can have unreadable contrast */
+*:not(button):not(a):not(.active) {
+  /* If background is very dark, ensure text is light */
+  color: inherit;
+}
+
+/* Final safety net for any missed elements */
+div:not([class*="active"]):not([class*="btn"]) {
+  color: inherit;
+}
+
+span:not([class*="badge"]):not([class*="tag"]) {
+  color: inherit;
+}
+
+p, li, label {
+  color: inherit;
+}

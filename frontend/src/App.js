@@ -10,10 +10,12 @@ import ExpertDraftTool from './screens/ExpertDraftTool';
 import TeamRosters from './screens/TeamRosters';
 import TeamImport from './screens/TeamImport';
 import Settings from './screens/Settings';
+import WeeklyAnalysis from './screens/WeeklyAnalysis';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import ApiService from './services/api';
 import './styles/App.css';
+import './styles/ContrastFix.css'; // Global contrast fixes
 
 function App() {
   const [user, setUser] = useState(null);
@@ -301,6 +303,7 @@ function App() {
               <Route path="/ai-trade-discovery" element={<AITradeDiscovery league={selectedLeague} />} />
               <Route path="/expert-draft-tool" element={<ExpertDraftTool league={selectedLeague} />} />
               <Route path="/waiver-wire" element={<WaiverWire league={selectedLeague} />} />
+              <Route path="/weekly-analysis" element={<WeeklyAnalysis league={selectedLeague} />} />
               <Route path="/news" element={<NewsFeed league={selectedLeague} />} />
               <Route path="/settings" element={<Settings user={user} leagues={leagues} />} />
             </Routes>

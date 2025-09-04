@@ -9,7 +9,7 @@
 }
 
 .screen-header {
-  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+  background: linear-gradient(135deg, var(--primary-brand-dark) 0%, var(--primary-brand) 100%);
   padding: var(--spacing-lg);
   border-radius: var(--radius-lg);
   margin-bottom: var(--spacing-lg);
@@ -22,7 +22,7 @@
 }
 
 .news-controls {
-  background: linear-gradient(135deg, var(--card-bg) 0%, var(--card-bg-dark) 100%);
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
   padding: var(--spacing-lg);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
@@ -38,9 +38,9 @@
 }
 
 .filter-buttons button {
-  background-color: var(--button-bg);
-  color: var(--button-text);
-  border: none;
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -49,20 +49,70 @@
 }
 
 .filter-buttons button:hover {
-  background-color: var(--button-bg-hover);
+  background-color: var(--bg-hover);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
 
 .filter-buttons button.active {
-  background-color: var(--accent);
-  color: var(--text-primary);
+  background-color: var(--primary-brand);
+  color: #ffffff;
+  border-color: var(--primary-brand);
 }
 
 .news-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: var(--spacing-lg);
+}
+
+.refresh-section {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.refresh-button {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.refresh-button:hover {
+  background-color: var(--bg-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.refresh-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.refresh-button.loading svg {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.last-updated {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
 }
 
 @media (max-width: 768px) {
@@ -79,5 +129,10 @@
   
   .news-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .refresh-section {
+    width: 100%;
+    justify-content: flex-end;
   }
 }

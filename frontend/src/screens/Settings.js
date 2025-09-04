@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Settings.css';
 
 const Settings = ({ user, leagues }) => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('account');
   const [settings, setSettings] = useState({
     // Account Settings
@@ -148,6 +150,12 @@ const Settings = ({ user, leagues }) => {
             <p>League: Sir Biffington's Revenge</p>
             <p>Team: Trashy McTrash-Face</p>
             <span className="status">✓ Configured</span>
+            <button 
+              className="btn btn-primary" 
+              onClick={() => navigate('/team-import?platform=espn')}
+            >
+              Re-import ESPN Team
+            </button>
           </div>
           
           <div className="platform-card sleeper configured">
@@ -155,6 +163,12 @@ const Settings = ({ user, leagues }) => {
             <p>League: Patriot</p>
             <p>Team: wtml</p>
             <span className="status">✓ Configured</span>
+            <button 
+              className="btn btn-primary" 
+              onClick={() => navigate('/team-import?platform=sleeper')}
+            >
+              Re-import Sleeper Team
+            </button>
           </div>
           
           <div className="platform-card yahoo">
@@ -164,6 +178,16 @@ const Settings = ({ user, leagues }) => {
               Coming Soon
             </button>
           </div>
+        </div>
+        
+        <div className="import-new-team">
+          <button 
+            className="btn btn-primary btn-lg" 
+            onClick={() => navigate('/team-import')}
+            style={{ marginTop: '20px', width: '100%' }}
+          >
+            ⚡ Import New Team
+          </button>
         </div>
       </div>
     </div>

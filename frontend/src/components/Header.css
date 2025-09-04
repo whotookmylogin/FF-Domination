@@ -295,6 +295,20 @@
   font-size: var(--font-size-xs);
 }
 
+.notification-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  color: var(--primary-brand);
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.notification-link:hover {
+  color: var(--primary-brand-light);
+  text-decoration: underline;
+}
+
 .no-notifications {
   padding: 20px;
   text-align: center;
