@@ -9,6 +9,7 @@ import logging
 from dataclasses import dataclass
 import json
 from itertools import combinations
+from .gridiron_guru_prompt import GridironGuru
 try:
     from openai import OpenAI
     openai_available = True
@@ -82,34 +83,9 @@ class AITradeAnalyzer:
         logging.info(f"Models: OpenAI={self.selected_models['openai']}, OpenRouter={self.selected_models['openrouter']}")
         
     def _load_expert_prompt(self) -> str:
-        """Load the expert fantasy football agent prompt"""
-        return """
-You are a legendary fantasy football expert with 30 years of experience and a 90% winning ratio.
-
-Your expertise includes:
-- Advanced trade evaluation considering positional scarcity
-- League-specific strategy optimization  
-- Injury risk and playoff schedule analysis
-- Team construction and roster balance
-- Market inefficiency identification
-- Psychological aspects of trading with opponents
-- Bye week management and coverage strategy
-- Upcoming matchup difficulty assessment
-- Playoff schedule strength analysis
-
-For each trade, provide:
-1. Detailed analysis of value exchange
-2. How this affects playoff chances for both teams  
-3. Risk assessment (injury, schedule, etc.)
-4. Strategic implications 
-5. Negotiation leverage points
-6. Overall recommendation with confidence level
-7. Bye week coverage impact for both teams
-8. Matchup advantages/disadvantages for next 4 weeks
-9. Optimal timing for trade execution
-
-Be specific, actionable, and consider all contextual factors including upcoming schedules.
-"""
+        """Load the Gridiron Guru expert prompt for trade analysis"""
+        # Use the comprehensive Gridiron Guru prompt for trade context
+        return GridironGuru.get_full_prompt(context_type="trade")
 
     def analyze_all_league_trades(self, league_id: str, platform_service, focus_team_id: str = None) -> List[TradeOpportunity]:
         """
@@ -503,17 +479,23 @@ Be conversational and explain in terms a casual fantasy player would understand.
 """
     
     def _query_openai(self, trade_context: str) -> Optional[Dict[str, Any]]:
-        """Query OpenAI for trade analysis"""
+        """Query OpenAI for trade analysis using Gridiron Guru"""
         if not self.client:
             logging.error("OpenAI client not initialized")
             return None
             
         try:
+            # Use Gridiron Guru's contextual prompt for trade analysis
+            guru_prompt = GridironGuru.get_context_prompt(
+                query=trade_context,
+                context={"analysis_type": "trade_evaluation"}
+            )
+            
             response = self.client.chat.completions.create(
                 model=self.selected_models['openai'],  # Uses configured model based on quality tier
                 messages=[
                     {"role": "system", "content": self.expert_prompt},
-                    {"role": "user", "content": trade_context}
+                    {"role": "user", "content": guru_prompt}
                 ],
                 max_tokens=1000,
                 temperature=0.7
@@ -565,8 +547,14 @@ Be conversational and explain in terms a casual fantasy player would understand.
             return None
     
     def _query_openrouter(self, trade_context: str) -> Optional[Dict[str, Any]]:
-        """Query OpenRouter for trade analysis"""
+        """Query OpenRouter for trade analysis using Gridiron Guru"""
         try:
+            # Use Gridiron Guru's contextual prompt for trade analysis
+            guru_prompt = GridironGuru.get_context_prompt(
+                query=trade_context,
+                context={"analysis_type": "trade_evaluation"}
+            )
+            
             response = requests.post(
                 "https://openrouter.ai/api/v1/chat/completions",
                 headers={
@@ -577,7 +565,7 @@ Be conversational and explain in terms a casual fantasy player would understand.
                     "model": self.selected_models['openrouter'],  # Uses configured model based on quality tier
                     "messages": [
                         {"role": "system", "content": self.expert_prompt},
-                        {"role": "user", "content": trade_context}
+                        {"role": "user", "content": guru_prompt}
                     ],
                     "max_tokens": 1000,
                     "temperature": 0.7

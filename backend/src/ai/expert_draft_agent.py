@@ -10,6 +10,7 @@ import logging
 from dataclasses import dataclass, asdict
 import json
 from datetime import datetime
+from .gridiron_guru_prompt import GridironGuru
 
 @dataclass
 class DraftPick:
@@ -64,50 +65,9 @@ class ExpertDraftAgent:
         self.draft_strategies = self._load_draft_strategies()
         
     def _load_expert_persona(self) -> str:
-        """Load the 30-year expert persona prompt"""
-        return """
-You are a legendary fantasy football draft expert with 30 years of experience and a 90% championship winning ratio.
-
-Your expertise spans:
-
-**Draft Philosophy:**
-- "Championship teams are built, not drafted" - focus on upside and ceiling
-- Value over consensus - find market inefficiencies 
-- Positional scarcity understanding across all formats
-- Roster construction balance and complementary pieces
-- Late-round lottery tickets that win championships
-
-**30 Years of Winning Strategies:**
-- Zero RB: Wait on RB, load up on WR/TE elite talent early
-- Hero RB: Take one elite RB early, then wait and diversify  
-- Robust RB: Secure RB depth early, they get hurt most
-- BPA (Best Player Available): Always take highest value regardless of position
-- Contrarian: Zig when others zag, find overlooked value
-
-**Advanced Concepts:**
-- ADP manipulation and reaching vs. value
-- Handcuff identification and lottery ticket strategy
-- Rookie vs. veteran risk/reward profiles
-- Injury history analysis and risk mitigation
-- Playoff schedule strength (weeks 15-17)
-- Bye week stacking and roster management
-
-**Draft Day Execution:**
-- Read the room - adapt to how others are drafting
-- Target identification 2-3 rounds ahead
-- Tier breaks and when to reach vs. wait
-- Trade up/down opportunities mid-draft
-- Stream vs. draft approach for K/DEF
-
-Your advice is:
-- Confident and decisive (you've seen it all)
-- Contextual to specific league settings
-- Strategic with detailed reasoning
-- Actionable with specific player recommendations
-- Championship-focused, not season-long mediocrity
-
-You speak with the authority of someone who has dominated fantasy football for three decades.
-"""
+        """Load the Gridiron Guru expert persona prompt"""
+        # Use the comprehensive Gridiron Guru prompt for draft context
+        return GridironGuru.get_full_prompt(context_type="draft")
 
     def _load_draft_strategies(self) -> Dict[str, Dict[str, Any]]:
         """Load predefined draft strategies"""
@@ -451,15 +411,21 @@ Provide grade (A+ to F) and detailed reasoning.
 """
     
     def _get_ai_pick_analysis(self, context: str) -> Dict[str, Any]:
-        """Get AI analysis of draft pick"""
+        """Get AI analysis of draft pick using Gridiron Guru persona"""
         
         try:
+            # Use Gridiron Guru's contextual prompt system
+            guru_prompt = GridironGuru.get_context_prompt(
+                query=context,
+                context={"analysis_type": "draft_pick"}
+            )
+            
             if self.openai_key:
                 response = openai.ChatCompletion.create(
                     model="gpt-4",
                     messages=[
                         {"role": "system", "content": self.expert_persona},
-                        {"role": "user", "content": context}
+                        {"role": "user", "content": guru_prompt}
                     ],
                     max_tokens=800,
                     temperature=0.8
@@ -478,7 +444,7 @@ Provide grade (A+ to F) and detailed reasoning.
                         "model": "anthropic/claude-3-sonnet",
                         "messages": [
                             {"role": "system", "content": self.expert_persona},
-                            {"role": "user", "content": context}
+                            {"role": "user", "content": guru_prompt}
                         ],
                         "max_tokens": 800,
                         "temperature": 0.8

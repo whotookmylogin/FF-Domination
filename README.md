@@ -35,6 +35,7 @@ The Fantasy Football Domination App leverages AI-driven analysis and automation 
 
 ### ⭐ Key Features
 
+- **🏈 The Gridiron Guru**: AI-powered expert with 35 years of fantasy football experience providing championship-level analysis
 - **🤖 AI Performance Predictions**: Proprietary AI model trained on 20+ years of fantasy data
 - **📰 Real-time News Analysis**: Sub-second reaction time to breaking news with automated alerts
 - **🤝 Smart Trade Suggestions**: Fairness scoring and win probability calculations for trades
@@ -108,6 +109,7 @@ npm start
 - **📘 [Development Guide](DEVELOPMENT.md)** - Detailed setup, API docs, troubleshooting
 - **🏛️ [Architecture](ARCHITECTURE.md)** - System design and technical overview
 - **🗺️ [MVP Roadmap](MVP_ROADMAP.md)** - Feature timeline and milestones
+- **🏈 [Gridiron Guru System](GRIDIRON_GURU.md)** - AI expert system with 35 years of fantasy football experience
 
 ## 🔧 Configuration
 
